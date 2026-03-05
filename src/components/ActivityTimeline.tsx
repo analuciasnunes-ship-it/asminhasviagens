@@ -1,14 +1,23 @@
-import { Activity, DURATION_OPTIONS } from "@/types/trip";
+import { Activity, Meal, Participant, DURATION_OPTIONS } from "@/types/trip";
 import { ActivityCard } from "./ActivityCard";
+import { MealCard } from "./MealCard";
 import { sortActivities } from "@/lib/sortActivities";
-import { Lock, GripVertical, AlertTriangle } from "lucide-react";
+import { Lock, GripVertical, AlertTriangle, UtensilsCrossed } from "lucide-react";
 import { useState, useRef, useCallback } from "react";
+
+type TimelineItem =
+  | { kind: "activity"; data: Activity }
+  | { kind: "meal"; data: Meal };
 
 interface Props {
   activities: Activity[];
+  meals?: Meal[];
+  participants?: Participant[];
   onUpdate: (activity: Activity) => void;
   onDelete: (id: string) => void;
   onReorder: (activities: Activity[]) => void;
+  onUpdateMeal?: (meal: Meal) => void;
+  onDeleteMeal?: (id: string) => void;
 }
 
 function formatGap(minutes: number): string {
@@ -46,14 +55,35 @@ function formatDurationShort(label: string): string {
   return map[label] || label;
 }
 
-function getGapMinutes(a: Activity, b: Activity): number | null {
-  if (!a.time || !b.time) return null;
-  const diff = getMinutes(b.time) - getMinutes(a.time);
+function getItemTime(item: TimelineItem): string | undefined {
+  return item.kind === "activity" ? (item.data as Activity).time : (item.data as Meal).time;
+}
+
+function getGapMinutes(a: TimelineItem, b: TimelineItem): number | null {
+  const timeA = getItemTime(a);
+  const timeB = getItemTime(b);
+  if (!timeA || !timeB) return null;
+  const diff = getMinutes(timeB) - getMinutes(timeA);
   return diff > 30 ? diff : null;
 }
 
-export function ActivityTimeline({ activities, onUpdate, onDelete, onReorder }: Props) {
-  const sorted = sortActivities(activities);
+export function ActivityTimeline({ activities, meals = [], participants = [], onUpdate, onDelete, onReorder, onUpdateMeal, onDeleteMeal }: Props) {
+  const sortedActivities = sortActivities(activities);
+
+  // Build unified timeline
+  const timelineItems: TimelineItem[] = [
+    ...sortedActivities.map((a): TimelineItem => ({ kind: "activity", data: a })),
+    ...meals.map((m): TimelineItem => ({ kind: "meal", data: m })),
+  ].sort((a, b) => {
+    const timeA = a.kind === "activity" ? (a.data as Activity).time : (a.data as Meal).time;
+    const timeB = b.kind === "activity" ? (b.data as Activity).time : (b.data as Meal).time;
+    if (!timeA && !timeB) return 0;
+    if (!timeA) return 1;
+    if (!timeB) return -1;
+    return timeA.localeCompare(timeB);
+  });
+
+  const sorted = sortedActivities; // keep for drag logic
 
   // Conflict detection: same time OR duration overlap
   const conflictIds = new Set<string>();
@@ -125,10 +155,10 @@ export function ActivityTimeline({ activities, onUpdate, onDelete, onReorder }: 
 
   const items: React.ReactNode[] = [];
 
-  sorted.forEach((activity, idx) => {
+  timelineItems.forEach((item, idx) => {
     // Gap indicator
     if (idx > 0) {
-      const gap = getGapMinutes(sorted[idx - 1], activity);
+      const gap = getGapMinutes(timelineItems[idx - 1], item);
       if (gap !== null) {
         items.push(
           <div key={`gap-${idx}`} className="flex items-center pl-[11px] py-1">
@@ -141,77 +171,100 @@ export function ActivityTimeline({ activities, onUpdate, onDelete, onReorder }: 
       }
     }
 
-    const isLocked = activity.timeLocked;
-    const isDragging = dragIndex === idx;
-    const isOver = overIndex === idx;
-    const conflict = hasConflict(activity);
+    const isLast = idx === timelineItems.length - 1;
+    const isFirst = idx === 0;
 
-    items.push(
-      <div
-        key={activity.id}
-        draggable={!isLocked}
-        onDragStart={() => handleDragStart(idx, activity)}
-        onDragOver={(e) => handleDragOver(e, idx)}
-        onDrop={() => handleDrop(idx)}
-        onDragEnd={handleDragEnd}
-        className={`flex items-stretch transition-all duration-200 ${
-          isDragging ? "opacity-40 scale-[0.97]" : ""
-        } ${isOver && dragIndex !== null && dragIndex !== idx ? "translate-y-1" : ""}`}
-      >
-        {/* Timeline column */}
-        <div className="flex flex-col items-center w-6 shrink-0 mr-3">
-          <div className={`w-[2px] flex-1 ${idx === 0 ? "bg-transparent" : conflict ? "bg-warning/30" : "bg-border"}`} />
-          <div
-            className={`w-3 h-3 rounded-full shrink-0 border-2 transition-colors duration-200 ${
-              conflict
-                ? "bg-warning/20 border-warning"
-                : isLocked
-                ? "bg-primary border-primary"
-                : activity.time
-                ? "bg-card border-primary/40"
-                : "bg-card border-muted-foreground/20"
-            }`}
-          />
-          <div className={`w-[2px] flex-1 ${idx === sorted.length - 1 ? "bg-transparent" : "bg-border"}`} />
-        </div>
-
-        {/* Activity content */}
-        <div className="flex-1 min-w-0 py-1">
-          {/* Time + lock + conflict header */}
-          <div className="flex items-center gap-1.5 mb-1">
-            {!isLocked && !activity.time && (
-              <span className="text-[11px] text-muted-foreground/40 italic">sem hora</span>
-            )}
-            {activity.time && (
-              <span className={`text-xs font-semibold tabular-nums ${
-                conflict ? "text-warning" : isLocked ? "text-primary" : "text-muted-foreground"
-              }`}>
-                {activity.time}
-              </span>
-            )}
-            {activity.estimatedDuration && (
-              <span className="text-[11px] text-muted-foreground/40">
-                · {formatDurationShort(activity.estimatedDuration)}
-              </span>
-            )}
-            {isLocked && <Lock size={10} className="text-primary" />}
-            {conflict && (
-              <span className="inline-flex items-center gap-1 text-[10px] text-warning font-medium">
-                <AlertTriangle size={10} /> Conflito
-              </span>
-            )}
-            {!isLocked && activity.time && (
-              <GripVertical size={12} className="text-muted-foreground/20 ml-auto cursor-grab active:cursor-grabbing" />
-            )}
+    if (item.kind === "meal") {
+      const meal = item.data as Meal;
+      items.push(
+        <div key={meal.id} className="flex items-stretch">
+          <div className="flex flex-col items-center w-6 shrink-0 mr-3">
+            <div className={`w-[2px] flex-1 ${isFirst ? "bg-transparent" : "bg-border"}`} />
+            <div className="w-3 h-3 rounded-full shrink-0 border-2 bg-warning/20 border-warning" />
+            <div className={`w-[2px] flex-1 ${isLast ? "bg-transparent" : "bg-border"}`} />
           </div>
-          <ActivityCard
-            activity={activity}
-            onUpdate={onUpdate}
-            onDelete={onDelete}
-          />
+          <div className="flex-1 min-w-0 py-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-xs font-semibold tabular-nums text-muted-foreground">
+                {meal.time}
+              </span>
+              <UtensilsCrossed size={10} className="text-warning" />
+            </div>
+            <MealCard meal={meal} participants={participants} onDelete={onDeleteMeal || (() => {})} onUpdate={onUpdateMeal || (() => {})} />
+          </div>
         </div>
-      </div>
-    );
+      );
+    } else {
+      const activity = item.data as Activity;
+      const isLocked = activity.timeLocked;
+      const actIdx = sorted.indexOf(activity);
+      const isDragging = dragIndex === actIdx;
+      const isOver = overIndex === actIdx;
+      const conflict = hasConflict(activity);
+
+      items.push(
+        <div
+          key={activity.id}
+          draggable={!isLocked}
+          onDragStart={() => handleDragStart(actIdx, activity)}
+          onDragOver={(e) => handleDragOver(e, actIdx)}
+          onDrop={() => handleDrop(actIdx)}
+          onDragEnd={handleDragEnd}
+          className={`flex items-stretch transition-all duration-200 ${
+            isDragging ? "opacity-40 scale-[0.97]" : ""
+          } ${isOver && dragIndex !== null && dragIndex !== actIdx ? "translate-y-1" : ""}`}
+        >
+          <div className="flex flex-col items-center w-6 shrink-0 mr-3">
+            <div className={`w-[2px] flex-1 ${isFirst ? "bg-transparent" : conflict ? "bg-warning/30" : "bg-border"}`} />
+            <div
+              className={`w-3 h-3 rounded-full shrink-0 border-2 transition-colors duration-200 ${
+                conflict
+                  ? "bg-warning/20 border-warning"
+                  : isLocked
+                  ? "bg-primary border-primary"
+                  : activity.time
+                  ? "bg-card border-primary/40"
+                  : "bg-card border-muted-foreground/20"
+              }`}
+            />
+            <div className={`w-[2px] flex-1 ${isLast ? "bg-transparent" : "bg-border"}`} />
+          </div>
+          <div className="flex-1 min-w-0 py-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              {!isLocked && !activity.time && (
+                <span className="text-[11px] text-muted-foreground/40 italic">sem hora</span>
+              )}
+              {activity.time && (
+                <span className={`text-xs font-semibold tabular-nums ${
+                  conflict ? "text-warning" : isLocked ? "text-primary" : "text-muted-foreground"
+                }`}>
+                  {activity.time}
+                </span>
+              )}
+              {activity.estimatedDuration && (
+                <span className="text-[11px] text-muted-foreground/40">
+                  · {formatDurationShort(activity.estimatedDuration)}
+                </span>
+              )}
+              {isLocked && <Lock size={10} className="text-primary" />}
+              {conflict && (
+                <span className="inline-flex items-center gap-1 text-[10px] text-warning font-medium">
+                  <AlertTriangle size={10} /> Conflito
+                </span>
+              )}
+              {!isLocked && activity.time && (
+                <GripVertical size={12} className="text-muted-foreground/20 ml-auto cursor-grab active:cursor-grabbing" />
+              )}
+            </div>
+            <ActivityCard
+              activity={activity}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+            />
+          </div>
+        </div>
+      );
+    }
   });
 
   return <div className="flex flex-col">{items}</div>;

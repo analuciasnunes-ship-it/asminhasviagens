@@ -3,7 +3,7 @@ import { useTrips } from "@/hooks/useTrips";
 import { AddDayItemMenu } from "@/components/AddDayItemMenu";
 import { ActivityTimeline } from "@/components/ActivityTimeline";
 import { TripDetails } from "@/components/TripDetails";
-import { MealCard } from "@/components/MealCard";
+
 import { ExpenseCard } from "@/components/ExpenseCard";
 import { Activity, Flight, Accommodation, RentalCar, Meal, Expense } from "@/types/trip";
 import { ArrowLeft, ShoppingCart, Receipt } from "lucide-react";
@@ -66,8 +66,6 @@ const DayPage = () => {
   const handleRemoveAccommodation = (aid: string) => updateDay({ accommodations: dayAccommodations.filter((x) => x.id !== aid) });
   const handleRemoveCar = (cid: string) => updateDay({ rentalCars: dayRentalCars.filter((x) => x.id !== cid) });
 
-  // Merge meals into timeline-compatible items for display
-  const sortedMeals = [...dayMeals].sort((a, b) => a.time.localeCompare(b.time));
   const supermarketExpenses = dayExpenses.filter((e) => e.type === "supermarket");
   const otherExpenses = dayExpenses.filter((e) => e.type === "other");
 
@@ -111,31 +109,14 @@ const DayPage = () => {
         {/* Activity Timeline */}
         <ActivityTimeline
           activities={day.activities}
+          meals={dayMeals}
+          participants={participants}
           onUpdate={handleUpdateActivity}
           onDelete={handleDeleteActivity}
           onReorder={(reordered) => updateDay({ activities: reordered })}
+          onUpdateMeal={handleUpdateMeal}
+          onDeleteMeal={handleDeleteMeal}
         />
-
-        {/* Meals in timeline */}
-        {sortedMeals.length > 0 && (
-          <div className="mt-4 space-y-2">
-            {sortedMeals.map((meal) => (
-              <div key={meal.id} className="flex items-stretch">
-                <div className="flex flex-col items-center w-6 shrink-0 mr-3">
-                  <div className="w-[2px] flex-1 bg-border" />
-                  <div className="w-3 h-3 rounded-full shrink-0 border-2 bg-warning/20 border-warning" />
-                  <div className="w-[2px] flex-1 bg-transparent" />
-                </div>
-                <div className="flex-1 min-w-0 py-1">
-                  <span className="text-xs font-semibold tabular-nums text-muted-foreground mb-1 block">
-                    {meal.time}
-                  </span>
-                  <MealCard meal={meal} participants={participants} onDelete={handleDeleteMeal} onUpdate={handleUpdateMeal} />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Add item menu */}
         <div className="pl-9 mt-2">
