@@ -17,6 +17,9 @@ export interface DayPlan {
   dayNumber: number;
   title?: string;
   activities: Activity[];
+  flights?: Flight[];
+  accommodations?: Accommodation[];
+  rentalCars?: RentalCar[];
 }
 
 export interface Flight {
