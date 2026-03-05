@@ -37,6 +37,14 @@ export interface Accommodation {
   price?: number;
 }
 
+export interface RentalCar {
+  id: string;
+  company: string;
+  pickupDate: string;
+  dropoffDate: string;
+  price?: number;
+}
+
 export interface Trip {
   id: string;
   destination: string;
@@ -45,5 +53,6 @@ export interface Trip {
   coverImage?: string;
   flights: Flight[];
   accommodations: Accommodation[];
+  rentalCars: RentalCar[];
   days: DayPlan[];
 }
