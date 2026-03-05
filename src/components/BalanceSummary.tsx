@@ -1,7 +1,8 @@
-import { Trip } from "@/types/trip";
+import { useState } from "react";
+import { Trip, Payment } from "@/types/trip";
 import { calculateBalances, calculateSettlements } from "@/lib/expenseUtils";
 import { AddPaymentDialog } from "./AddPaymentDialog";
-import { ArrowRight, Wallet, Trash2 } from "lucide-react";
+import { ArrowRight, Wallet, Trash2, Pencil } from "lucide-react";
 
 interface Props {
   trip: Trip;
@@ -10,6 +11,9 @@ interface Props {
 
 export function BalanceSummary({ trip, onUpdate }: Props) {
   const participants = trip.participants || [];
+  const [editPayment, setEditPayment] = useState<Payment | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+
   if (participants.length === 0) return null;
 
   const balances = calculateBalances(trip);
@@ -19,12 +23,22 @@ export function BalanceSummary({ trip, onUpdate }: Props) {
 
   if (!hasAnyExpense && payments.length === 0) return null;
 
-  const handleAddPayment = (payment: any) => {
-    onUpdate({ ...trip, payments: [...(trip.payments || []), payment] });
+  const handleAddPayment = (payment: Payment) => {
+    const existing = (trip.payments || []).find((p) => p.id === payment.id);
+    if (existing) {
+      onUpdate({ ...trip, payments: (trip.payments || []).map((p) => (p.id === payment.id ? payment : p)) });
+    } else {
+      onUpdate({ ...trip, payments: [...(trip.payments || []), payment] });
+    }
   };
 
   const handleDeletePayment = (id: string) => {
     onUpdate({ ...trip, payments: (trip.payments || []).filter((p) => p.id !== id) });
+  };
+
+  const handleEditPayment = (payment: Payment) => {
+    setEditPayment(payment);
+    setEditOpen(true);
   };
 
   return (
@@ -76,7 +90,10 @@ export function BalanceSummary({ trip, onUpdate }: Props) {
                 <ArrowRight size={14} className="text-muted-foreground shrink-0" />
                 <span className="text-foreground">{toName}</span>
                 <span className="ml-auto font-medium text-success">{p.amount.toFixed(2)}€</span>
-                <button onClick={() => handleDeletePayment(p.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors ml-1">
+                <button onClick={() => handleEditPayment(p)} className="text-muted-foreground/40 hover:text-primary transition-colors ml-1">
+                  <Pencil size={12} />
+                </button>
+                <button onClick={() => handleDeletePayment(p.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
                   <Trash2 size={12} />
                 </button>
               </div>
@@ -86,6 +103,14 @@ export function BalanceSummary({ trip, onUpdate }: Props) {
       )}
 
       <AddPaymentDialog participants={participants} onAdd={handleAddPayment} />
+
+      <AddPaymentDialog
+        participants={participants}
+        onAdd={handleAddPayment}
+        editPayment={editPayment || undefined}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
     </div>
   );
 }

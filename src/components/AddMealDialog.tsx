@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,16 @@ interface Props {
   participants: Participant[];
   onAdd: (meal: Meal) => void;
   trigger?: React.ReactNode;
+  editMeal?: Meal;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddMealDialog({ participants, onAdd, trigger }: Props) {
-  const [open, setOpen] = useState(false);
+export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: controlledOpen, onOpenChange }: Props) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
   const [time, setTime] = useState("");
   const [restaurantName, setRestaurantName] = useState("");
   const [notes, setNotes] = useState("");
@@ -23,29 +29,38 @@ export function AddMealDialog({ participants, onAdd, trigger }: Props) {
   const [paidBy, setPaidBy] = useState(participants[0]?.id || "");
   const [sharedBy, setSharedBy] = useState<string[]>(participants.map((p) => p.id));
 
-  const reset = () => {
-    setTime("");
-    setRestaurantName("");
-    setNotes("");
-    setTotalBill("");
-    setPaidBy(participants[0]?.id || "");
-    setSharedBy(participants.map((p) => p.id));
-  };
+  useEffect(() => {
+    if (open && editMeal) {
+      setTime(editMeal.time);
+      setRestaurantName(editMeal.restaurantName);
+      setNotes(editMeal.notes || "");
+      setTotalBill(editMeal.totalBill.toString());
+      setPaidBy(editMeal.paidBy);
+      setSharedBy(editMeal.sharedBy);
+    } else if (open && !editMeal) {
+      setTime("");
+      setRestaurantName("");
+      setNotes("");
+      setTotalBill("");
+      setPaidBy(participants[0]?.id || "");
+      setSharedBy(participants.map((p) => p.id));
+    }
+  }, [open, editMeal]);
 
   const handleSubmit = () => {
     if (!restaurantName || !totalBill || !paidBy || sharedBy.length === 0) return;
     onAdd({
-      id: crypto.randomUUID(),
+      id: editMeal?.id || crypto.randomUUID(),
       type: "meal",
       time: time || "12:00",
       restaurantName,
       notes: notes || undefined,
+      rating: editMeal?.rating,
       totalBill: parseFloat(totalBill),
       paidBy,
       sharedBy,
     });
     setOpen(false);
-    reset();
   };
 
   const toggleShared = (id: string) => {
@@ -53,20 +68,23 @@ export function AddMealDialog({ participants, onAdd, trigger }: Props) {
   };
 
   const perPerson = totalBill && sharedBy.length > 0 ? parseFloat(totalBill) / sharedBy.length : 0;
+  const isEdit = !!editMeal;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-            <UtensilsCrossed size={14} /> Refeição
-          </button>
-        )}
-      </DialogTrigger>
+      {!controlledOpen && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+              <UtensilsCrossed size={14} /> Refeição
+            </button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <UtensilsCrossed size={18} /> Nova Refeição
+            <UtensilsCrossed size={18} /> {isEdit ? "Editar Refeição" : "Nova Refeição"}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
@@ -131,7 +149,7 @@ export function AddMealDialog({ participants, onAdd, trigger }: Props) {
           </div>
 
           <Button onClick={handleSubmit} className="w-full" disabled={!restaurantName || !totalBill || !paidBy || sharedBy.length === 0}>
-            Adicionar Refeição
+            {isEdit ? "Guardar" : "Adicionar Refeição"}
           </Button>
         </div>
       </DialogContent>

@@ -63,6 +63,16 @@ const TripExpensesPage = () => {
     });
   };
 
+  const handleUpdateExpense = (updated: Expense) => {
+    updateTrip({
+      ...trip,
+      days: trip.days.map((d) => ({
+        ...d,
+        expenses: (d.expenses || []).map((e) => (e.id === updated.id ? updated : e)),
+      })),
+    });
+  };
+
   const handleDeleteExpense = (expenseId: string) => {
     updateTrip({
       ...trip,
@@ -125,7 +135,7 @@ const TripExpensesPage = () => {
             {allSupermarket.map(({ expense, dayLabel }) => (
               <div key={expense.id}>
                 <span className="text-[11px] text-muted-foreground/50 font-medium">{dayLabel}</span>
-                <ExpenseCard expense={expense} participants={participants} onDelete={handleDeleteExpense} />
+                <ExpenseCard expense={expense} participants={participants} onDelete={handleDeleteExpense} onUpdate={handleUpdateExpense} />
               </div>
             ))}
           </section>
@@ -143,7 +153,7 @@ const TripExpensesPage = () => {
             {allOther.map(({ expense, dayLabel }) => (
               <div key={expense.id}>
                 <span className="text-[11px] text-muted-foreground/50 font-medium">{dayLabel}</span>
-                <ExpenseCard expense={expense} participants={participants} onDelete={handleDeleteExpense} />
+                <ExpenseCard expense={expense} participants={participants} onDelete={handleDeleteExpense} onUpdate={handleUpdateExpense} />
               </div>
             ))}
           </section>

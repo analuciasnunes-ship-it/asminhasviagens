@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,37 +9,58 @@ import { Payment, Participant } from "@/types/trip";
 interface Props {
   participants: Participant[];
   onAdd: (payment: Payment) => void;
+  editPayment?: Payment;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddPaymentDialog({ participants, onAdd }: Props) {
-  const [open, setOpen] = useState(false);
+export function AddPaymentDialog({ participants, onAdd, editPayment, open: controlledOpen, onOpenChange }: Props) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
   const [from, setFrom] = useState(participants[0]?.id || "");
   const [to, setTo] = useState(participants[1]?.id || "");
   const [amount, setAmount] = useState("");
 
+  useEffect(() => {
+    if (open && editPayment) {
+      setFrom(editPayment.from);
+      setTo(editPayment.to);
+      setAmount(editPayment.amount.toString());
+    } else if (open && !editPayment) {
+      setFrom(participants[0]?.id || "");
+      setTo(participants[1]?.id || "");
+      setAmount("");
+    }
+  }, [open, editPayment]);
+
   const handleSubmit = () => {
     if (!from || !to || from === to || !amount) return;
     onAdd({
-      id: crypto.randomUUID(),
+      id: editPayment?.id || crypto.randomUUID(),
       from,
       to,
       amount: parseFloat(amount),
-      date: new Date().toISOString().split("T")[0],
+      date: editPayment?.date || new Date().toISOString().split("T")[0],
     });
     setOpen(false);
-    setAmount("");
   };
+
+  const isEdit = !!editPayment;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full">
-          + Registar pagamento
-        </Button>
-      </DialogTrigger>
+      {!controlledOpen && (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="w-full">
+            + Registar pagamento
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Registar Pagamento</DialogTitle>
+          <DialogTitle>{isEdit ? "Editar Pagamento" : "Registar Pagamento"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
@@ -92,7 +113,7 @@ export function AddPaymentDialog({ participants, onAdd }: Props) {
           </div>
 
           <Button onClick={handleSubmit} className="w-full" disabled={!from || !to || from === to || !amount}>
-            Registar
+            {isEdit ? "Guardar" : "Registar"}
           </Button>
         </div>
       </DialogContent>

@@ -52,6 +52,7 @@ const DayPage = () => {
   // Expenses
   const dayExpenses = day.expenses || [];
   const handleAddExpense = (expense: Expense) => updateDay({ expenses: [...dayExpenses, expense] });
+  const handleUpdateExpense = (expense: Expense) => updateDay({ expenses: dayExpenses.map((e) => (e.id === expense.id ? expense : e)) });
   const handleDeleteExpense = (expenseId: string) => updateDay({ expenses: dayExpenses.filter((e) => e.id !== expenseId) });
 
   // Day-level detail handlers
@@ -140,7 +141,7 @@ const DayPage = () => {
                   <ShoppingCart size={12} /> Supermercado
                 </h4>
                 {supermarketExpenses.map((exp) => (
-                  <ExpenseCard key={exp.id} expense={exp} participants={participants} onDelete={handleDeleteExpense} />
+                  <ExpenseCard key={exp.id} expense={exp} participants={participants} onDelete={handleDeleteExpense} onUpdate={handleUpdateExpense} />
                 ))}
               </div>
             )}
@@ -150,7 +151,7 @@ const DayPage = () => {
                   <Receipt size={12} /> Outras despesas
                 </h4>
                 {otherExpenses.map((exp) => (
-                  <ExpenseCard key={exp.id} expense={exp} participants={participants} onDelete={handleDeleteExpense} />
+                  <ExpenseCard key={exp.id} expense={exp} participants={participants} onDelete={handleDeleteExpense} onUpdate={handleUpdateExpense} />
                 ))}
               </div>
             )}
