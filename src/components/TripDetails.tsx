@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trip, Flight, Accommodation, RentalCar } from "@/types/trip";
+import { Flight, Accommodation, RentalCar } from "@/types/trip";
 import { Plane, Hotel, Car, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,19 +16,29 @@ import {
 type FormType = "flight" | "accommodation" | "car" | null;
 
 interface Props {
-  trip: Trip;
-  onUpdate: (trip: Trip) => void;
+  flights: Flight[];
+  accommodations: Accommodation[];
+  rentalCars: RentalCar[];
+  onAddFlight: (f: Flight) => void;
+  onAddAccommodation: (a: Accommodation) => void;
+  onAddCar: (c: RentalCar) => void;
+  onRemoveFlight: (id: string) => void;
+  onRemoveAccommodation: (id: string) => void;
+  onRemoveCar: (id: string) => void;
+  compact?: boolean;
 }
 
-export function TripLogistics({ trip, onUpdate }: Props) {
+export function TripDetails({
+  flights, accommodations, rentalCars,
+  onAddFlight, onAddAccommodation, onAddCar,
+  onRemoveFlight, onRemoveAccommodation, onRemoveCar,
+  compact = false,
+}: Props) {
   const [activeForm, setActiveForm] = useState<FormType>(null);
   const [flightDraft, setFlightDraft] = useState({ origin: "", destination: "", date: "", airline: "", price: "" });
   const [accDraft, setAccDraft] = useState({ placeName: "", address: "", checkIn: "", checkOut: "", price: "" });
   const [carDraft, setCarDraft] = useState({ company: "", pickupDate: "", dropoffDate: "", price: "" });
 
-  const flights = trip.flights || [];
-  const accommodations = trip.accommodations || [];
-  const rentalCars = trip.rentalCars || [];
   const hasItems = flights.length > 0 || accommodations.length > 0 || rentalCars.length > 0;
 
   const formatDate = (d: string) => {
@@ -37,92 +47,72 @@ export function TripLogistics({ trip, onUpdate }: Props) {
 
   const addFlight = () => {
     if (!flightDraft.origin || !flightDraft.destination || !flightDraft.date) return;
-    const f: Flight = {
+    onAddFlight({
       id: crypto.randomUUID(), origin: flightDraft.origin, destination: flightDraft.destination,
       date: flightDraft.date, airline: flightDraft.airline || undefined,
       price: flightDraft.price ? parseFloat(flightDraft.price) : undefined,
-    };
-    onUpdate({ ...trip, flights: [...flights, f] });
+    });
     setFlightDraft({ origin: "", destination: "", date: "", airline: "", price: "" });
     setActiveForm(null);
   };
 
   const addAccommodation = () => {
     if (!accDraft.placeName || !accDraft.checkIn || !accDraft.checkOut) return;
-    const a: Accommodation = {
+    onAddAccommodation({
       id: crypto.randomUUID(), placeName: accDraft.placeName, address: accDraft.address || undefined,
       checkIn: accDraft.checkIn, checkOut: accDraft.checkOut,
       price: accDraft.price ? parseFloat(accDraft.price) : undefined,
-    };
-    onUpdate({ ...trip, accommodations: [...accommodations, a] });
+    });
     setAccDraft({ placeName: "", address: "", checkIn: "", checkOut: "", price: "" });
     setActiveForm(null);
   };
 
   const addCar = () => {
     if (!carDraft.company || !carDraft.pickupDate || !carDraft.dropoffDate) return;
-    const c: RentalCar = {
+    onAddCar({
       id: crypto.randomUUID(), company: carDraft.company,
       pickupDate: carDraft.pickupDate, dropoffDate: carDraft.dropoffDate,
       price: carDraft.price ? parseFloat(carDraft.price) : undefined,
-    };
-    onUpdate({ ...trip, rentalCars: [...rentalCars, c] });
+    });
     setCarDraft({ company: "", pickupDate: "", dropoffDate: "", price: "" });
     setActiveForm(null);
   };
 
-  const remove = (type: "flights" | "accommodations" | "rentalCars", id: string) => {
-    onUpdate({ ...trip, [type]: (trip[type] || []).filter((i: any) => i.id !== id) });
-  };
+  const addButton = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center gap-1.5 text-sm text-primary/60 hover:text-primary transition-colors">
+          <Plus size={16} /> Adicionar detalhe
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuItem onClick={() => setActiveForm("flight")}>
+          <Plane size={14} className="mr-2" /> Voo
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setActiveForm("accommodation")}>
+          <Hotel size={14} className="mr-2" /> Alojamento
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setActiveForm("car")}>
+          <Car size={14} className="mr-2" /> Aluguer de carro
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   if (!hasItems && !activeForm) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-1.5 text-sm text-primary/60 hover:text-primary transition-colors mb-2">
-            <Plus size={16} /> Adicionar logística
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuItem onClick={() => setActiveForm("flight")}>
-            <Plane size={14} className="mr-2" /> Voo
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setActiveForm("accommodation")}>
-            <Hotel size={14} className="mr-2" /> Alojamento
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setActiveForm("car")}>
-            <Car size={14} className="mr-2" /> Aluguer de carro
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
+    return <div className="mb-4">{addButton}</div>;
   }
 
   return (
-    <div className="mb-6 space-y-3">
+    <div className={compact ? "mb-4 space-y-2" : "mb-6 space-y-3"}>
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Logística da Viagem</h2>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1 text-xs text-primary/60 hover:text-primary transition-colors">
-              <Plus size={14} /> Adicionar
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setActiveForm("flight")}>
-              <Plane size={14} className="mr-2" /> Voo
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setActiveForm("accommodation")}>
-              <Hotel size={14} className="mr-2" /> Alojamento
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setActiveForm("car")}>
-              <Car size={14} className="mr-2" /> Aluguer de carro
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+          {compact ? "Detalhes do Dia" : "Detalhes da Viagem"}
+        </h2>
+        {addButton}
       </div>
 
-      {/* Existing items */}
+      {/* Items */}
       {flights.map((f) => (
         <div key={f.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
@@ -134,7 +124,7 @@ export function TripLogistics({ trip, onUpdate }: Props) {
               {formatDate(f.date)}{f.airline && ` · ${f.airline}`}{f.price != null && ` · ${f.price.toFixed(2)}€`}
             </p>
           </div>
-          <button onClick={() => remove("flights", f.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+          <button onClick={() => onRemoveFlight(f.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
             <Trash2 size={14} />
           </button>
         </div>
@@ -151,7 +141,7 @@ export function TripLogistics({ trip, onUpdate }: Props) {
               {formatDate(a.checkIn)} – {formatDate(a.checkOut)}{a.address && ` · ${a.address}`}{a.price != null && ` · ${a.price.toFixed(2)}€`}
             </p>
           </div>
-          <button onClick={() => remove("accommodations", a.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+          <button onClick={() => onRemoveAccommodation(a.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
             <Trash2 size={14} />
           </button>
         </div>
@@ -168,7 +158,7 @@ export function TripLogistics({ trip, onUpdate }: Props) {
               {formatDate(c.pickupDate)} – {formatDate(c.dropoffDate)}{c.price != null && ` · ${c.price.toFixed(2)}€`}
             </p>
           </div>
-          <button onClick={() => remove("rentalCars", c.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+          <button onClick={() => onRemoveCar(c.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
             <Trash2 size={14} />
           </button>
         </div>

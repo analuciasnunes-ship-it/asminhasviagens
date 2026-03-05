@@ -2,7 +2,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTrips } from "@/hooks/useTrips";
 import { ActivityCard } from "@/components/ActivityCard";
 import { AddActivityDialog } from "@/components/AddActivityDialog";
-import { Activity } from "@/types/trip";
+import { TripDetails } from "@/components/TripDetails";
+import { Activity, Flight, Accommodation, RentalCar } from "@/types/trip";
 import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -25,24 +26,28 @@ const DayPage = () => {
   const dateLabel = format(new Date(day.date), "EEEE, d 'de' MMMM", { locale: pt });
   const dayCost = day.activities.reduce((s, a) => s + (a.cost || 0), 0);
 
-  const updateDay = (activities: Activity[]) => {
+  const updateDay = (patch: Partial<typeof day>) => {
     updateTrip({
       ...trip,
-      days: trip.days.map((d) => (d.id === day.id ? { ...d, activities } : d)),
+      days: trip.days.map((d) => (d.id === day.id ? { ...d, ...patch } : d)),
     });
   };
 
-  const handleAddActivity = (activity: Activity) => {
-    updateDay([...day.activities, activity]);
-  };
+  const handleAddActivity = (activity: Activity) => updateDay({ activities: [...day.activities, activity] });
+  const handleUpdateActivity = (updated: Activity) => updateDay({ activities: day.activities.map((a) => (a.id === updated.id ? updated : a)) });
+  const handleDeleteActivity = (activityId: string) => updateDay({ activities: day.activities.filter((a) => a.id !== activityId) });
 
-  const handleUpdateActivity = (updated: Activity) => {
-    updateDay(day.activities.map((a) => (a.id === updated.id ? updated : a)));
-  };
+  // Day-level detail handlers
+  const dayFlights = day.flights || [];
+  const dayAccommodations = day.accommodations || [];
+  const dayRentalCars = day.rentalCars || [];
 
-  const handleDeleteActivity = (activityId: string) => {
-    updateDay(day.activities.filter((a) => a.id !== activityId));
-  };
+  const handleAddFlight = (f: Flight) => updateDay({ flights: [...dayFlights, f] });
+  const handleAddAccommodation = (a: Accommodation) => updateDay({ accommodations: [...dayAccommodations, a] });
+  const handleAddCar = (c: RentalCar) => updateDay({ rentalCars: [...dayRentalCars, c] });
+  const handleRemoveFlight = (fid: string) => updateDay({ flights: dayFlights.filter((x) => x.id !== fid) });
+  const handleRemoveAccommodation = (aid: string) => updateDay({ accommodations: dayAccommodations.filter((x) => x.id !== aid) });
+  const handleRemoveCar = (cid: string) => updateDay({ rentalCars: dayRentalCars.filter((x) => x.id !== cid) });
 
   return (
     <div className="min-h-screen bg-background">
@@ -67,6 +72,19 @@ const DayPage = () => {
             </div>
           )}
         </header>
+
+        <TripDetails
+          flights={dayFlights}
+          accommodations={dayAccommodations}
+          rentalCars={dayRentalCars}
+          onAddFlight={handleAddFlight}
+          onAddAccommodation={handleAddAccommodation}
+          onAddCar={handleAddCar}
+          onRemoveFlight={handleRemoveFlight}
+          onRemoveAccommodation={handleRemoveAccommodation}
+          onRemoveCar={handleRemoveCar}
+          compact
+        />
 
         <div className="space-y-2">
           {day.activities.map((activity) => (
