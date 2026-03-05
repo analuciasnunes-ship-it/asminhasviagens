@@ -1,4 +1,4 @@
-import { Activity } from "@/types/trip";
+import { Activity, DURATION_OPTIONS } from "@/types/trip";
 import { ActivityCard } from "./ActivityCard";
 import { sortActivities } from "@/lib/sortActivities";
 import { Lock, GripVertical, AlertTriangle } from "lucide-react";
@@ -24,6 +24,28 @@ function getMinutes(time: string): number {
   return h * 60 + m;
 }
 
+function getDurationMinutes(a: Activity): number {
+  if (!a.estimatedDuration) return 0;
+  const opt = DURATION_OPTIONS.find((o) => o.label === a.estimatedDuration);
+  return opt?.minutes || 0;
+}
+
+function formatDurationShort(label: string): string {
+  const map: Record<string, string> = {
+    "Paragem rápida": "~10m",
+    "15 min": "15m",
+    "30 min": "30m",
+    "1 h": "1h",
+    "1 h 30": "1h30",
+    "2 h": "2h",
+    "3 h": "3h",
+    "4 h": "4h",
+    "5 h": "5h",
+    "+ de 5 h": "5h+",
+  };
+  return map[label] || label;
+}
+
 function getGapMinutes(a: Activity, b: Activity): number | null {
   if (!a.time || !b.time) return null;
   const diff = getMinutes(b.time) - getMinutes(a.time);
@@ -33,18 +55,28 @@ function getGapMinutes(a: Activity, b: Activity): number | null {
 export function ActivityTimeline({ activities, onUpdate, onDelete, onReorder }: Props) {
   const sorted = sortActivities(activities);
 
-  // Conflict detection: find activities sharing the same time
-  const conflictTimes = new Set<string>();
-  const timeCounts: Record<string, number> = {};
-  sorted.forEach((a) => {
-    if (a.time) {
-      timeCounts[a.time] = (timeCounts[a.time] || 0) + 1;
+  // Conflict detection: same time OR duration overlap
+  const conflictIds = new Set<string>();
+  for (let i = 0; i < sorted.length; i++) {
+    const a = sorted[i];
+    if (!a.time) continue;
+    const aStart = getMinutes(a.time);
+    const aDur = getDurationMinutes(a);
+    const aEnd = aStart + aDur;
+
+    for (let j = i + 1; j < sorted.length; j++) {
+      const b = sorted[j];
+      if (!b.time) continue;
+      const bStart = getMinutes(b.time);
+
+      // Same time or duration overlap
+      if (aStart === bStart || (aDur > 0 && aEnd > bStart)) {
+        conflictIds.add(a.id);
+        conflictIds.add(b.id);
+      }
     }
-  });
-  Object.entries(timeCounts).forEach(([time, count]) => {
-    if (count > 1) conflictTimes.add(time);
-  });
-  const hasConflict = (a: Activity) => !!a.time && conflictTimes.has(a.time);
+  }
+  const hasConflict = (a: Activity) => conflictIds.has(a.id);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const dragRef = useRef<number | null>(null);
@@ -155,6 +187,11 @@ export function ActivityTimeline({ activities, onUpdate, onDelete, onReorder }: 
                 conflict ? "text-warning" : isLocked ? "text-primary" : "text-muted-foreground"
               }`}>
                 {activity.time}
+              </span>
+            )}
+            {activity.estimatedDuration && (
+              <span className="text-[11px] text-muted-foreground/40">
+                · {formatDurationShort(activity.estimatedDuration)}
               </span>
             )}
             {isLocked && <Lock size={10} className="text-primary" />}

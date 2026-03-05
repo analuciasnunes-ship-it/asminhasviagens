@@ -1,4 +1,4 @@
-import { Activity } from "@/types/trip";
+import { Activity, DURATION_OPTIONS } from "@/types/trip";
 import { Check, Clock, ExternalLink, Lock, LockOpen, Pencil, Star, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ export function ActivityCard({ activity, onUpdate, onDelete }: Props) {
       status: activity.status,
       timeLocked: activity.timeLocked || false,
       link: activity.link || "",
+      estimatedDuration: activity.estimatedDuration,
     });
     setEditing(true);
   };
@@ -101,6 +102,25 @@ export function ActivityCard({ activity, onUpdate, onDelete }: Props) {
           value={editData.link || ""}
           onChange={(e) => setEditData({ ...editData, link: e.target.value })}
         />
+        <div>
+          <label className="text-sm text-muted-foreground mb-1.5 block">Duração estimada</label>
+          <div className="flex flex-wrap gap-1.5">
+            {DURATION_OPTIONS.map((opt) => (
+              <button
+                key={opt.label}
+                type="button"
+                onClick={() => setEditData({ ...editData, estimatedDuration: editData.estimatedDuration === opt.label ? undefined : opt.label })}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  editData.estimatedDuration === opt.label
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-secondary text-muted-foreground border-border hover:border-primary/30"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             Estado:

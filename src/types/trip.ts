@@ -1,8 +1,24 @@
+export const DURATION_OPTIONS = [
+  { label: "Paragem rápida", minutes: 10 },
+  { label: "15 min", minutes: 15 },
+  { label: "30 min", minutes: 30 },
+  { label: "1 h", minutes: 60 },
+  { label: "1 h 30", minutes: 90 },
+  { label: "2 h", minutes: 120 },
+  { label: "3 h", minutes: 180 },
+  { label: "4 h", minutes: 240 },
+  { label: "5 h", minutes: 300 },
+  { label: "+ de 5 h", minutes: 360 },
+] as const;
+
+export type DurationLabel = typeof DURATION_OPTIONS[number]["label"];
+
 export interface Activity {
   id: string;
   title: string;
   time?: string;
   timeLocked?: boolean;
+  estimatedDuration?: DurationLabel;
   description?: string;
   cost?: number;
   link?: string;
