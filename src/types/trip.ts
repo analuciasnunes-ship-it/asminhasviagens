@@ -13,6 +13,11 @@ export const DURATION_OPTIONS = [
 
 export type DurationLabel = typeof DURATION_OPTIONS[number]["label"];
 
+export interface Participant {
+  id: string;
+  name: string;
+}
+
 export interface Activity {
   id: string;
   title: string;
@@ -28,6 +33,36 @@ export interface Activity {
   comments?: string;
 }
 
+export interface Meal {
+  id: string;
+  type: "meal";
+  time: string;
+  restaurantName: string;
+  notes?: string;
+  rating?: number;
+  totalBill: number;
+  paidBy: string; // participant id
+  sharedBy: string[]; // participant ids
+}
+
+export interface Expense {
+  id: string;
+  type: "supermarket" | "other";
+  description: string;
+  amount: number;
+  paidBy: string;
+  sharedBy: string[];
+  notes?: string;
+}
+
+export interface Payment {
+  id: string;
+  from: string; // participant id
+  to: string; // participant id
+  amount: number;
+  date: string;
+}
+
 export interface DayPlan {
   id: string;
   date: string;
@@ -37,6 +72,8 @@ export interface DayPlan {
   flights?: Flight[];
   accommodations?: Accommodation[];
   rentalCars?: RentalCar[];
+  meals?: Meal[];
+  expenses?: Expense[];
 }
 
 export interface Flight {
@@ -75,8 +112,10 @@ export interface Trip {
   startDate: string;
   endDate: string;
   coverImage?: string;
+  participants: Participant[];
   flights: Flight[];
   accommodations: Accommodation[];
   rentalCars: RentalCar[];
   days: DayPlan[];
+  payments?: Payment[];
 }

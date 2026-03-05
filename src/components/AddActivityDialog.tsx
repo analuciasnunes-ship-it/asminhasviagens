@@ -9,9 +9,10 @@ import { Activity, DURATION_OPTIONS, DurationLabel } from "@/types/trip";
 
 interface Props {
   onAdd: (activity: Activity) => void;
+  trigger?: React.ReactNode;
 }
 
-export function AddActivityDialog({ onAdd }: Props) {
+export function AddActivityDialog({ onAdd, trigger }: Props) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [time, setTime] = useState("");
@@ -45,9 +46,11 @@ export function AddActivityDialog({ onAdd }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="w-full py-2 text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1 rounded-lg border border-dashed border-border hover:border-primary/30">
-          <Plus size={14} /> Adicionar atividade
-        </button>
+        {trigger || (
+          <button className="w-full py-2 text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1 rounded-lg border border-dashed border-border hover:border-primary/30">
+            <Plus size={14} /> Adicionar atividade
+          </button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
