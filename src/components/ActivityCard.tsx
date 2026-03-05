@@ -1,5 +1,5 @@
 import { Activity } from "@/types/trip";
-import { Check, Clock, ExternalLink, Star, Trash2 } from "lucide-react";
+import { Check, Clock, ExternalLink, Lock, LockOpen, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -78,6 +78,20 @@ export function ActivityCard({ activity, onUpdate, onDelete }: Props) {
           {activity.time && (
             <span className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
               <Clock size={11} /> {activity.time}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdate({ ...activity, timeLocked: !activity.timeLocked });
+                }}
+                className={`ml-1 transition-colors ${
+                  activity.timeLocked
+                    ? "text-primary"
+                    : "text-muted-foreground/30 hover:text-muted-foreground"
+                }`}
+                title={activity.timeLocked ? "Hora fixa" : "Hora flexível"}
+              >
+                {activity.timeLocked ? <Lock size={11} /> : <LockOpen size={11} />}
+              </button>
             </span>
           )}
           {activity.description && !isVisited && (
