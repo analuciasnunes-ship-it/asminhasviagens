@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Flight, Accommodation, RentalCar } from "@/types/trip";
-import { Plane, Hotel, Car, Plus, Trash2 } from "lucide-react";
+import { Plane, Hotel, Car, Plus, Trash2, ArrowLeftRight, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 type FormType = "flight" | "accommodation" | "car" | null;
+type FlightMode = null | "roundtrip" | "oneway";
 
 interface Props {
   flights: Flight[];
@@ -28,6 +29,9 @@ interface Props {
   compact?: boolean;
 }
 
+const emptyRoundtrip = { origin: "", destination: "", departureTime: "", arrivalTime: "", returnDepartureTime: "", returnArrivalTime: "", price: "" };
+const emptyOneway = { origin: "", destination: "", flightNumber: "", departureTime: "", arrivalTime: "", price: "" };
+
 export function TripDetails({
   flights, accommodations, rentalCars,
   onAddFlight, onAddAccommodation, onAddCar,
@@ -35,7 +39,9 @@ export function TripDetails({
   compact = false,
 }: Props) {
   const [activeForm, setActiveForm] = useState<FormType>(null);
-  const [flightDraft, setFlightDraft] = useState({ flightNumber: "", departureTime: "", arrivalTime: "", price: "" });
+  const [flightMode, setFlightMode] = useState<FlightMode>(null);
+  const [rtDraft, setRtDraft] = useState(emptyRoundtrip);
+  const [owDraft, setOwDraft] = useState(emptyOneway);
   const [accDraft, setAccDraft] = useState({ placeName: "", address: "", checkIn: "", checkOut: "", price: "" });
   const [carDraft, setCarDraft] = useState({ company: "", pickupDate: "", dropoffDate: "", price: "" });
 
@@ -45,16 +51,42 @@ export function TripDetails({
     try { return format(new Date(d), "d MMM", { locale: pt }); } catch { return d; }
   };
 
-  const addFlight = () => {
-    if (!flightDraft.flightNumber) return;
-    onAddFlight({
-      id: crypto.randomUUID(), flightNumber: flightDraft.flightNumber,
-      departureTime: flightDraft.departureTime || undefined,
-      arrivalTime: flightDraft.arrivalTime || undefined,
-      price: flightDraft.price ? parseFloat(flightDraft.price) : undefined,
-    });
-    setFlightDraft({ flightNumber: "", departureTime: "", arrivalTime: "", price: "" });
+  const resetFlightForm = () => {
     setActiveForm(null);
+    setFlightMode(null);
+    setRtDraft(emptyRoundtrip);
+    setOwDraft(emptyOneway);
+  };
+
+  const addRoundtrip = () => {
+    if (!rtDraft.origin || !rtDraft.destination) return;
+    onAddFlight({
+      id: crypto.randomUUID(),
+      type: "roundtrip",
+      origin: rtDraft.origin,
+      destination: rtDraft.destination,
+      departureTime: rtDraft.departureTime || undefined,
+      arrivalTime: rtDraft.arrivalTime || undefined,
+      returnDepartureTime: rtDraft.returnDepartureTime || undefined,
+      returnArrivalTime: rtDraft.returnArrivalTime || undefined,
+      price: rtDraft.price ? parseFloat(rtDraft.price) : undefined,
+    });
+    resetFlightForm();
+  };
+
+  const addOneway = () => {
+    if (!owDraft.origin || !owDraft.destination) return;
+    onAddFlight({
+      id: crypto.randomUUID(),
+      type: "oneway",
+      origin: owDraft.origin,
+      destination: owDraft.destination,
+      flightNumber: owDraft.flightNumber || undefined,
+      departureTime: owDraft.departureTime || undefined,
+      arrivalTime: owDraft.arrivalTime || undefined,
+      price: owDraft.price ? parseFloat(owDraft.price) : undefined,
+    });
+    resetFlightForm();
   };
 
   const addAccommodation = () => {
@@ -104,6 +136,61 @@ export function TripDetails({
     return <div className="mb-4">{addButton}</div>;
   }
 
+  const renderFlightCard = (f: Flight) => {
+    if (f.type === "roundtrip") {
+      return (
+        <div key={f.id} className="rounded-2xl border border-border bg-card p-3 space-y-2">
+          <div className="flex items-start gap-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0 mt-0.5">
+              <ArrowLeftRight size={14} className="text-primary" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <p className="text-sm font-medium text-foreground">{f.origin} ↔ {f.destination}</p>
+              <div className="space-y-0.5">
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground/70">Ida:</span>
+                  {f.departureTime && ` ${f.departureTime}`}{f.arrivalTime && ` → ${f.arrivalTime}`}
+                  {!f.departureTime && !f.arrivalTime && " —"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground/70">Volta:</span>
+                  {f.returnDepartureTime && ` ${f.returnDepartureTime}`}{f.returnArrivalTime && ` → ${f.returnArrivalTime}`}
+                  {!f.returnDepartureTime && !f.returnArrivalTime && " —"}
+                </p>
+              </div>
+              {f.price != null && (
+                <p className="text-xs text-muted-foreground">{f.price.toFixed(2)}€</p>
+              )}
+            </div>
+            <button onClick={() => onRemoveFlight(f.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors mt-1">
+              <Trash2 size={14} />
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div key={f.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
+        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
+          <ArrowRight size={14} className="text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground truncate">
+            {f.origin} → {f.destination}
+            {f.flightNumber && <span className="text-muted-foreground font-normal"> · {f.flightNumber}</span>}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {f.departureTime && `${f.departureTime}`}{f.arrivalTime && ` → ${f.arrivalTime}`}{f.price != null && ` · ${f.price.toFixed(2)}€`}
+          </p>
+        </div>
+        <button onClick={() => onRemoveFlight(f.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+          <Trash2 size={14} />
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className={compact ? "mb-4 space-y-2" : "mb-6 space-y-3"}>
       <div className="flex items-center justify-between">
@@ -113,24 +200,10 @@ export function TripDetails({
         {addButton}
       </div>
 
-      {/* Items */}
-      {flights.map((f) => (
-        <div key={f.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
-            <Plane size={14} className="text-primary" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-foreground truncate">{f.flightNumber}</p>
-            <p className="text-xs text-muted-foreground">
-              {f.departureTime && `${f.departureTime}`}{f.arrivalTime && ` → ${f.arrivalTime}`}{f.price != null && ` · ${f.price.toFixed(2)}€`}
-            </p>
-          </div>
-          <button onClick={() => onRemoveFlight(f.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
-            <Trash2 size={14} />
-          </button>
-        </div>
-      ))}
+      {/* Flight items */}
+      {flights.map(renderFlightCard)}
 
+      {/* Accommodation items */}
       {accommodations.map((a) => (
         <div key={a.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
@@ -148,6 +221,7 @@ export function TripDetails({
         </div>
       ))}
 
+      {/* Rental car items */}
       {rentalCars.map((c) => (
         <div key={c.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
@@ -165,26 +239,87 @@ export function TripDetails({
         </div>
       ))}
 
-      {/* Forms */}
+      {/* Flight form */}
       {activeForm === "flight" && (
-        <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center gap-2 mb-1">
             <Plane size={14} className="text-primary" />
             <span className="text-sm font-semibold text-foreground">Novo voo</span>
           </div>
-          <div className="space-y-1"><Label className="text-xs">Número do voo *</Label><Input className="h-8 text-sm" placeholder="TP1234" value={flightDraft.flightNumber} onChange={(e) => setFlightDraft({ ...flightDraft, flightNumber: e.target.value })} /></div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1"><Label className="text-xs">Hora de partida</Label><Input className="h-8 text-sm" type="time" value={flightDraft.departureTime} onChange={(e) => setFlightDraft({ ...flightDraft, departureTime: e.target.value })} /></div>
-            <div className="space-y-1"><Label className="text-xs">Hora de chegada</Label><Input className="h-8 text-sm" type="time" value={flightDraft.arrivalTime} onChange={(e) => setFlightDraft({ ...flightDraft, arrivalTime: e.target.value })} /></div>
-          </div>
-          <div className="space-y-1"><Label className="text-xs">Preço (€)</Label><Input className="h-8 text-sm" type="number" step="0.01" placeholder="0.00" value={flightDraft.price} onChange={(e) => setFlightDraft({ ...flightDraft, price: e.target.value })} /></div>
-          <div className="flex gap-2 pt-1">
-            <Button size="sm" className="flex-1 h-8 text-xs" onClick={addFlight} disabled={!flightDraft.flightNumber}>Adicionar</Button>
-            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setActiveForm(null)}>Cancelar</Button>
-          </div>
+
+          {!flightMode && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Que tipo de voo pretende adicionar?</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-10 text-xs flex flex-col gap-0.5"
+                  onClick={() => setFlightMode("roundtrip")}
+                >
+                  <ArrowLeftRight size={14} />
+                  Ida e volta
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-10 text-xs flex flex-col gap-0.5"
+                  onClick={() => setFlightMode("oneway")}
+                >
+                  <ArrowRight size={14} />
+                  Voos separados
+                </Button>
+              </div>
+              <Button size="sm" variant="ghost" className="h-8 text-xs w-full" onClick={resetFlightForm}>Cancelar</Button>
+            </div>
+          )}
+
+          {flightMode === "roundtrip" && (
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1"><Label className="text-xs">Origem *</Label><Input className="h-8 text-sm" placeholder="LIS" value={rtDraft.origin} onChange={(e) => setRtDraft({ ...rtDraft, origin: e.target.value })} /></div>
+                <div className="space-y-1"><Label className="text-xs">Destino *</Label><Input className="h-8 text-sm" placeholder="CDG" value={rtDraft.destination} onChange={(e) => setRtDraft({ ...rtDraft, destination: e.target.value })} /></div>
+              </div>
+              <p className="text-xs font-medium text-muted-foreground pt-1">Ida</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1"><Label className="text-xs">Partida</Label><Input className="h-8 text-sm" type="time" value={rtDraft.departureTime} onChange={(e) => setRtDraft({ ...rtDraft, departureTime: e.target.value })} /></div>
+                <div className="space-y-1"><Label className="text-xs">Chegada</Label><Input className="h-8 text-sm" type="time" value={rtDraft.arrivalTime} onChange={(e) => setRtDraft({ ...rtDraft, arrivalTime: e.target.value })} /></div>
+              </div>
+              <p className="text-xs font-medium text-muted-foreground pt-1">Volta</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1"><Label className="text-xs">Partida</Label><Input className="h-8 text-sm" type="time" value={rtDraft.returnDepartureTime} onChange={(e) => setRtDraft({ ...rtDraft, returnDepartureTime: e.target.value })} /></div>
+                <div className="space-y-1"><Label className="text-xs">Chegada</Label><Input className="h-8 text-sm" type="time" value={rtDraft.returnArrivalTime} onChange={(e) => setRtDraft({ ...rtDraft, returnArrivalTime: e.target.value })} /></div>
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Preço total (€)</Label><Input className="h-8 text-sm" type="number" step="0.01" placeholder="0.00" value={rtDraft.price} onChange={(e) => setRtDraft({ ...rtDraft, price: e.target.value })} /></div>
+              <div className="flex gap-2 pt-1">
+                <Button size="sm" className="flex-1 h-8 text-xs" onClick={addRoundtrip} disabled={!rtDraft.origin || !rtDraft.destination}>Adicionar</Button>
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={resetFlightForm}>Cancelar</Button>
+              </div>
+            </div>
+          )}
+
+          {flightMode === "oneway" && (
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1"><Label className="text-xs">Origem *</Label><Input className="h-8 text-sm" placeholder="LIS" value={owDraft.origin} onChange={(e) => setOwDraft({ ...owDraft, origin: e.target.value })} /></div>
+                <div className="space-y-1"><Label className="text-xs">Destino *</Label><Input className="h-8 text-sm" placeholder="CDG" value={owDraft.destination} onChange={(e) => setOwDraft({ ...owDraft, destination: e.target.value })} /></div>
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Número do voo</Label><Input className="h-8 text-sm" placeholder="TP1234" value={owDraft.flightNumber} onChange={(e) => setOwDraft({ ...owDraft, flightNumber: e.target.value })} /></div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1"><Label className="text-xs">Hora de partida</Label><Input className="h-8 text-sm" type="time" value={owDraft.departureTime} onChange={(e) => setOwDraft({ ...owDraft, departureTime: e.target.value })} /></div>
+                <div className="space-y-1"><Label className="text-xs">Hora de chegada</Label><Input className="h-8 text-sm" type="time" value={owDraft.arrivalTime} onChange={(e) => setOwDraft({ ...owDraft, arrivalTime: e.target.value })} /></div>
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Preço (€)</Label><Input className="h-8 text-sm" type="number" step="0.01" placeholder="0.00" value={owDraft.price} onChange={(e) => setOwDraft({ ...owDraft, price: e.target.value })} /></div>
+              <div className="flex gap-2 pt-1">
+                <Button size="sm" className="flex-1 h-8 text-xs" onClick={addOneway} disabled={!owDraft.origin || !owDraft.destination}>Adicionar</Button>
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={resetFlightForm}>Cancelar</Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
+      {/* Accommodation form */}
       {activeForm === "accommodation" && (
         <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -205,6 +340,7 @@ export function TripDetails({
         </div>
       )}
 
+      {/* Car form */}
       {activeForm === "car" && (
         <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-2">
