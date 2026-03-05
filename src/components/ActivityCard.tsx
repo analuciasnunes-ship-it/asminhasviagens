@@ -1,8 +1,9 @@
 import { Activity } from "@/types/trip";
-import { Check, Clock, ExternalLink, Lock, LockOpen, Star, Trash2 } from "lucide-react";
+import { Check, Clock, ExternalLink, Lock, LockOpen, Pencil, Star, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   activity: Activity;
@@ -11,8 +12,31 @@ interface Props {
 }
 
 export function ActivityCard({ activity, onUpdate, onDelete }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editData, setEditData] = useState<Partial<Activity>>({});
   const isVisited = activity.status === "visitado";
+
+  const startEditing = () => {
+    setEditData({
+      title: activity.title,
+      time: activity.time || "",
+      description: activity.description || "",
+      cost: activity.cost,
+      status: activity.status,
+      timeLocked: activity.timeLocked || false,
+      link: activity.link || "",
+    });
+    setEditing(true);
+  };
+
+  const saveEdits = () => {
+    onUpdate({
+      ...activity,
+      ...editData,
+      cost: editData.cost != null && editData.cost !== undefined ? Number(editData.cost) : undefined,
+    });
+    setEditing(false);
+  };
 
   const toggleStatus = () => {
     onUpdate({
@@ -35,6 +59,74 @@ export function ActivityCard({ activity, onUpdate, onDelete }: Props) {
     };
     reader.readAsDataURL(file);
   };
+
+  if (editing) {
+    return (
+      <div className="rounded-xl border border-primary/30 bg-card p-4 space-y-3 animate-fade-in">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-foreground">Editar atividade</span>
+          <button onClick={() => setEditing(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+        <Input
+          placeholder="Título *"
+          value={editData.title || ""}
+          onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+        />
+        <div className="flex gap-2">
+          <Input
+            type="time"
+            value={editData.time || ""}
+            onChange={(e) => setEditData({ ...editData, time: e.target.value })}
+            className="flex-1"
+          />
+          <Input
+            type="number"
+            step="0.01"
+            placeholder="Custo €"
+            value={editData.cost ?? ""}
+            onChange={(e) => setEditData({ ...editData, cost: e.target.value ? parseFloat(e.target.value) : undefined })}
+            className="flex-1"
+          />
+        </div>
+        <Textarea
+          placeholder="Descrição (opcional)"
+          value={editData.description || ""}
+          onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+          className="min-h-[60px] resize-none"
+        />
+        <Input
+          placeholder="Link (opcional)"
+          value={editData.link || ""}
+          onChange={(e) => setEditData({ ...editData, link: e.target.value })}
+        />
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            Estado:
+            <select
+              value={editData.status}
+              onChange={(e) => setEditData({ ...editData, status: e.target.value as Activity["status"] })}
+              className="bg-secondary text-foreground rounded-md px-2 py-1 text-sm border-none outline-none"
+            >
+              <option value="planeado">Planeado</option>
+              <option value="visitado">Visitado</option>
+            </select>
+          </label>
+          <button
+            onClick={() => setEditData({ ...editData, timeLocked: !editData.timeLocked })}
+            className={`flex items-center gap-1 text-sm transition-colors ${editData.timeLocked ? "text-primary" : "text-muted-foreground"}`}
+          >
+            {editData.timeLocked ? <Lock size={14} /> : <LockOpen size={14} />}
+            {editData.timeLocked ? "Obrigatório" : "Indicativo"}
+          </button>
+        </div>
+        <Button onClick={saveEdits} disabled={!editData.title?.trim()} className="w-full" size="sm">
+          Guardar alterações
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -70,6 +162,9 @@ export function ActivityCard({ activity, onUpdate, onDelete }: Props) {
                   {activity.cost.toFixed(2)}€
                 </span>
               )}
+              <button onClick={startEditing} className="text-muted-foreground/40 hover:text-primary transition-colors">
+                <Pencil size={14} />
+              </button>
               <button onClick={() => onDelete(activity.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
                 <Trash2 size={14} />
               </button>
