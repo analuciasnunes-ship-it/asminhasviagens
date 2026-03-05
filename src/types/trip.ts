@@ -24,10 +24,9 @@ export interface DayPlan {
 
 export interface Flight {
   id: string;
-  origin: string;
-  destination: string;
-  date: string;
-  airline?: string;
+  flightNumber: string;
+  departureTime?: string;
+  arrivalTime?: string;
   price?: number;
 }
 
