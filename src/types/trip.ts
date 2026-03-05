@@ -15,6 +15,7 @@ export interface DayPlan {
   id: string;
   date: string;
   dayNumber: number;
+  title?: string;
   activities: Activity[];
 }
 
