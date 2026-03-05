@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,32 +13,46 @@ interface Props {
   expenseType: "supermarket" | "other";
   onAdd: (expense: Expense) => void;
   trigger?: React.ReactNode;
+  editExpense?: Expense;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddExpenseDialog({ participants, expenseType, onAdd, trigger }: Props) {
-  const [open, setOpen] = useState(false);
+export function AddExpenseDialog({ participants, expenseType, onAdd, trigger, editExpense, open: controlledOpen, onOpenChange }: Props) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
+  const isSupermarket = expenseType === "supermarket";
+  const Icon = isSupermarket ? ShoppingCart : Receipt;
+  const label = isSupermarket ? "Supermercado" : "Outra Despesa";
+
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
   const [paidBy, setPaidBy] = useState(participants[0]?.id || "");
   const [sharedBy, setSharedBy] = useState<string[]>(participants.map((p) => p.id));
 
-  const isSupermarket = expenseType === "supermarket";
-  const Icon = isSupermarket ? ShoppingCart : Receipt;
-  const label = isSupermarket ? "Supermercado" : "Outra Despesa";
-
-  const reset = () => {
-    setDescription("");
-    setAmount("");
-    setNotes("");
-    setPaidBy(participants[0]?.id || "");
-    setSharedBy(participants.map((p) => p.id));
-  };
+  useEffect(() => {
+    if (open && editExpense) {
+      setDescription(editExpense.description);
+      setAmount(editExpense.amount.toString());
+      setNotes(editExpense.notes || "");
+      setPaidBy(editExpense.paidBy);
+      setSharedBy(editExpense.sharedBy);
+    } else if (open && !editExpense) {
+      setDescription("");
+      setAmount("");
+      setNotes("");
+      setPaidBy(participants[0]?.id || "");
+      setSharedBy(participants.map((p) => p.id));
+    }
+  }, [open, editExpense]);
 
   const handleSubmit = () => {
     if (!description || !amount || !paidBy || sharedBy.length === 0) return;
     onAdd({
-      id: crypto.randomUUID(),
+      id: editExpense?.id || crypto.randomUUID(),
       type: expenseType,
       description,
       amount: parseFloat(amount),
@@ -47,7 +61,6 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger }: 
       notes: notes || undefined,
     });
     setOpen(false);
-    reset();
   };
 
   const toggleShared = (id: string) => {
@@ -55,20 +68,23 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger }: 
   };
 
   const perPerson = amount && sharedBy.length > 0 ? parseFloat(amount) / sharedBy.length : 0;
+  const isEdit = !!editExpense;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-            <Icon size={14} /> {label}
-          </button>
-        )}
-      </DialogTrigger>
+      {!controlledOpen && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Icon size={14} /> {label}
+            </button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Icon size={18} /> {label}
+            <Icon size={18} /> {isEdit ? `Editar ${label}` : label}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
@@ -127,7 +143,7 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger }: 
           </div>
 
           <Button onClick={handleSubmit} className="w-full" disabled={!description || !amount || !paidBy || sharedBy.length === 0}>
-            Adicionar
+            {isEdit ? "Guardar" : "Adicionar"}
           </Button>
         </div>
       </DialogContent>
