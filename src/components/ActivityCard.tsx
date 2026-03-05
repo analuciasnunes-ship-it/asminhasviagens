@@ -130,9 +130,11 @@ export function ActivityCard({ activity, onUpdate, onDelete }: Props) {
 
   return (
     <div
-      className={`rounded-xl border transition-all animate-fade-in ${
+      className={`rounded-xl border transition-all animate-fade-in shadow-sm ${
         isVisited
           ? "bg-success/5 border-success/20"
+          : activity.timeLocked
+          ? "bg-secondary/80 border-primary/15 shadow-md"
           : "bg-card border-border"
       }`}
     >
