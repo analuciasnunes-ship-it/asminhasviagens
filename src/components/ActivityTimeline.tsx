@@ -1,7 +1,7 @@
 import { Activity } from "@/types/trip";
 import { ActivityCard } from "./ActivityCard";
 import { sortActivities } from "@/lib/sortActivities";
-import { Lock, GripVertical } from "lucide-react";
+import { Lock, GripVertical, AlertTriangle } from "lucide-react";
 import { useState, useRef, useCallback } from "react";
 
 interface Props {
@@ -32,6 +32,19 @@ function getGapMinutes(a: Activity, b: Activity): number | null {
 
 export function ActivityTimeline({ activities, onUpdate, onDelete, onReorder }: Props) {
   const sorted = sortActivities(activities);
+
+  // Conflict detection: find activities sharing the same time
+  const conflictTimes = new Set<string>();
+  const timeCounts: Record<string, number> = {};
+  sorted.forEach((a) => {
+    if (a.time) {
+      timeCounts[a.time] = (timeCounts[a.time] || 0) + 1;
+    }
+  });
+  Object.entries(timeCounts).forEach(([time, count]) => {
+    if (count > 1) conflictTimes.add(time);
+  });
+  const hasConflict = (a: Activity) => !!a.time && conflictTimes.has(a.time);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const dragRef = useRef<number | null>(null);
@@ -99,6 +112,7 @@ export function ActivityTimeline({ activities, onUpdate, onDelete, onReorder }: 
     const isLocked = activity.timeLocked;
     const isDragging = dragIndex === idx;
     const isOver = overIndex === idx;
+    const conflict = hasConflict(activity);
 
     items.push(
       <div
@@ -108,44 +122,46 @@ export function ActivityTimeline({ activities, onUpdate, onDelete, onReorder }: 
         onDragOver={(e) => handleDragOver(e, idx)}
         onDrop={() => handleDrop(idx)}
         onDragEnd={handleDragEnd}
-        className={`flex items-stretch transition-all ${
+        className={`flex items-stretch transition-all duration-200 ${
           isDragging ? "opacity-40 scale-[0.97]" : ""
         } ${isOver && dragIndex !== null && dragIndex !== idx ? "translate-y-1" : ""}`}
       >
         {/* Timeline column */}
         <div className="flex flex-col items-center w-6 shrink-0 mr-3">
-          {/* Top line */}
-          <div className={`w-[2px] flex-1 ${idx === 0 ? "bg-transparent" : "bg-border"}`} />
-          {/* Node dot */}
+          <div className={`w-[2px] flex-1 ${idx === 0 ? "bg-transparent" : conflict ? "bg-warning/30" : "bg-border"}`} />
           <div
-            className={`w-3 h-3 rounded-full shrink-0 border-2 transition-colors ${
-              isLocked
+            className={`w-3 h-3 rounded-full shrink-0 border-2 transition-colors duration-200 ${
+              conflict
+                ? "bg-warning/20 border-warning"
+                : isLocked
                 ? "bg-primary border-primary"
                 : activity.time
                 ? "bg-card border-primary/40"
                 : "bg-card border-muted-foreground/20"
             }`}
           />
-          {/* Bottom line */}
           <div className={`w-[2px] flex-1 ${idx === sorted.length - 1 ? "bg-transparent" : "bg-border"}`} />
         </div>
 
         {/* Activity content */}
         <div className="flex-1 min-w-0 py-1">
-          {/* Time + lock header */}
+          {/* Time + lock + conflict header */}
           <div className="flex items-center gap-1.5 mb-1">
             {!isLocked && !activity.time && (
               <span className="text-[11px] text-muted-foreground/40 italic">sem hora</span>
             )}
             {activity.time && (
               <span className={`text-xs font-semibold tabular-nums ${
-                isLocked ? "text-primary" : "text-muted-foreground"
+                conflict ? "text-warning" : isLocked ? "text-primary" : "text-muted-foreground"
               }`}>
                 {activity.time}
               </span>
             )}
-            {isLocked && (
-              <Lock size={10} className="text-primary" />
+            {isLocked && <Lock size={10} className="text-primary" />}
+            {conflict && (
+              <span className="inline-flex items-center gap-1 text-[10px] text-warning font-medium">
+                <AlertTriangle size={10} /> Conflito
+              </span>
             )}
             {!isLocked && activity.time && (
               <GripVertical size={12} className="text-muted-foreground/20 ml-auto cursor-grab active:cursor-grabbing" />
