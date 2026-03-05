@@ -1,7 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useTrips } from "@/hooks/useTrips";
-import { DayCard } from "@/components/DayCard";
-import { DayPlan } from "@/types/trip";
+import { DayOverviewCard } from "@/components/DayOverviewCard";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -25,10 +24,10 @@ const TripPage = () => {
     0
   );
 
-  const handleUpdateDay = (updated: DayPlan) => {
+  const handleUpdateDayTitle = (dayId: string, title: string) => {
     updateTrip({
       ...trip,
-      days: trip.days.map((d) => (d.id === updated.id ? updated : d)),
+      days: trip.days.map((d) => (d.id === dayId ? { ...d, title: title || undefined } : d)),
     });
   };
 
@@ -71,9 +70,15 @@ const TripPage = () => {
           )}
         </header>
 
-        <div className="space-y-8">
+        <div className="space-y-3">
           {trip.days.map((day) => (
-            <DayCard key={day.id} day={day} onUpdateDay={handleUpdateDay} />
+            <DayOverviewCard
+              key={day.id}
+              day={day}
+              tripId={trip.id}
+              onUpdateTitle={handleUpdateDayTitle}
+              onClick={() => navigate(`/trip/${trip.id}/day/${day.id}`)}
+            />
           ))}
         </div>
       </div>
