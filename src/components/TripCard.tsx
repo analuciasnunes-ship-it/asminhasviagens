@@ -24,12 +24,6 @@ export function TripCard({ trip }: TripCardProps) {
     return `${s} – ${e}`;
   };
 
-  const totalCost = trip.days.reduce(
-    (sum, day) =>
-      sum + day.activities.reduce((s, a) => s + (a.cost || 0), 0),
-    0
-  );
-
   return (
     <button
       onClick={() => navigate(`/trip/${trip.id}`)}
@@ -46,16 +40,9 @@ export function TripCard({ trip }: TripCardProps) {
           </div>
         )}
         <div className="p-4 space-y-2">
-          <div className="flex items-start justify-between">
-            <h3 className="text-lg font-semibold text-foreground">
-              {trip.destination}
-            </h3>
-            {totalCost > 0 && (
-              <span className="text-sm font-medium text-muted-foreground">
-                {totalCost.toFixed(2)}€
-              </span>
-            )}
-          </div>
+          <h3 className="text-lg font-semibold text-foreground">
+            {trip.destination}
+          </h3>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Calendar size={14} />
