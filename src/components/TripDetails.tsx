@@ -35,7 +35,9 @@ export function TripDetails({
   compact = false,
 }: Props) {
   const [activeForm, setActiveForm] = useState<FormType>(null);
-  const [flightDraft, setFlightDraft] = useState({ origin: "", destination: "", date: "", airline: "", price: "" });
+  const [flightDraft, setFlightDraft] = useState({ flightNumber: "", origin: "", destination: "", date: "", airline: "", price: "", departureTime: "", arrivalTime: "" });
+  const [flightSearching, setFlightSearching] = useState(false);
+  const [flightSearchError, setFlightSearchError] = useState("");
   const [accDraft, setAccDraft] = useState({ placeName: "", address: "", checkIn: "", checkOut: "", price: "" });
   const [carDraft, setCarDraft] = useState({ company: "", pickupDate: "", dropoffDate: "", price: "" });
 
@@ -45,6 +47,38 @@ export function TripDetails({
     try { return format(new Date(d), "d MMM", { locale: pt }); } catch { return d; }
   };
 
+  const searchFlight = async () => {
+    if (!flightDraft.flightNumber) return;
+    setFlightSearching(true);
+    setFlightSearchError("");
+    try {
+      const params = new URLSearchParams({
+        access_key: "ad172f1d969431cc8ba7c778cdc99816",
+        flight_iata: flightDraft.flightNumber.toUpperCase().replace(/\s/g, ""),
+      });
+      const res = await fetch(`https://api.aviationstack.com/v1/flights?${params}`);
+      const json = await res.json();
+      const flight = json?.data?.[0];
+      if (!flight) {
+        setFlightSearchError("Não foi possível obter os dados do voo automaticamente. Preencha manualmente.");
+        return;
+      }
+      setFlightDraft((prev) => ({
+        ...prev,
+        airline: flight.airline?.name || prev.airline,
+        origin: flight.departure?.iata || prev.origin,
+        destination: flight.arrival?.iata || prev.destination,
+        date: flight.flight_date || prev.date,
+        departureTime: flight.departure?.scheduled?.slice(11, 16) || prev.departureTime,
+        arrivalTime: flight.arrival?.scheduled?.slice(11, 16) || prev.arrivalTime,
+      }));
+    } catch {
+      setFlightSearchError("Não foi possível obter os dados do voo automaticamente. Preencha manualmente.");
+    } finally {
+      setFlightSearching(false);
+    }
+  };
+
   const addFlight = () => {
     if (!flightDraft.origin || !flightDraft.destination || !flightDraft.date) return;
     onAddFlight({
@@ -52,7 +86,7 @@ export function TripDetails({
       date: flightDraft.date, airline: flightDraft.airline || undefined,
       price: flightDraft.price ? parseFloat(flightDraft.price) : undefined,
     });
-    setFlightDraft({ origin: "", destination: "", date: "", airline: "", price: "" });
+    setFlightDraft({ flightNumber: "", origin: "", destination: "", date: "", airline: "", price: "", departureTime: "", arrivalTime: "" });
     setActiveForm(null);
   };
 
@@ -172,17 +206,30 @@ export function TripDetails({
             <span className="text-sm font-semibold text-foreground">Novo voo</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1"><Label className="text-xs">Número do voo</Label><Input className="h-8 text-sm" placeholder="TP1234" value={flightDraft.flightNumber} onChange={(e) => setFlightDraft({ ...flightDraft, flightNumber: e.target.value })} /></div>
+            <div className="flex items-end">
+              <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={searchFlight} disabled={!flightDraft.flightNumber || flightSearching}>
+                {flightSearching ? "A procurar…" : "Procurar voo"}
+              </Button>
+            </div>
+          </div>
+          {flightSearchError && <p className="text-xs text-destructive">{flightSearchError}</p>}
+          <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1"><Label className="text-xs">Origem *</Label><Input className="h-8 text-sm" placeholder="LIS" value={flightDraft.origin} onChange={(e) => setFlightDraft({ ...flightDraft, origin: e.target.value })} /></div>
             <div className="space-y-1"><Label className="text-xs">Destino *</Label><Input className="h-8 text-sm" placeholder="CDG" value={flightDraft.destination} onChange={(e) => setFlightDraft({ ...flightDraft, destination: e.target.value })} /></div>
           </div>
           <div className="space-y-1"><Label className="text-xs">Data *</Label><Input className="h-8 text-sm" type="date" value={flightDraft.date} onChange={(e) => setFlightDraft({ ...flightDraft, date: e.target.value })} /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1"><Label className="text-xs">Partida</Label><Input className="h-8 text-sm" type="time" value={flightDraft.departureTime} onChange={(e) => setFlightDraft({ ...flightDraft, departureTime: e.target.value })} /></div>
+            <div className="space-y-1"><Label className="text-xs">Chegada</Label><Input className="h-8 text-sm" type="time" value={flightDraft.arrivalTime} onChange={(e) => setFlightDraft({ ...flightDraft, arrivalTime: e.target.value })} /></div>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1"><Label className="text-xs">Companhia</Label><Input className="h-8 text-sm" placeholder="TAP" value={flightDraft.airline} onChange={(e) => setFlightDraft({ ...flightDraft, airline: e.target.value })} /></div>
             <div className="space-y-1"><Label className="text-xs">Preço (€)</Label><Input className="h-8 text-sm" type="number" step="0.01" placeholder="0.00" value={flightDraft.price} onChange={(e) => setFlightDraft({ ...flightDraft, price: e.target.value })} /></div>
           </div>
           <div className="flex gap-2 pt-1">
             <Button size="sm" className="flex-1 h-8 text-xs" onClick={addFlight} disabled={!flightDraft.origin || !flightDraft.destination || !flightDraft.date}>Adicionar</Button>
-            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setActiveForm(null)}>Cancelar</Button>
+            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setActiveForm(null); setFlightSearchError(""); }}>Cancelar</Button>
           </div>
         </div>
       )}
