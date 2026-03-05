@@ -1,10 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useTrips } from "@/hooks/useTrips";
-import { ActivityCard } from "@/components/ActivityCard";
 import { AddActivityDialog } from "@/components/AddActivityDialog";
+import { ActivityTimeline } from "@/components/ActivityTimeline";
 import { TripDetails } from "@/components/TripDetails";
 import { Activity, Flight, Accommodation, RentalCar } from "@/types/trip";
-import { sortActivities } from "@/lib/sortActivities";
 import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -87,15 +86,13 @@ const DayPage = () => {
           compact
         />
 
-        <div className="space-y-2">
-          {sortActivities(day.activities).map((activity) => (
-            <ActivityCard
-              key={activity.id}
-              activity={activity}
-              onUpdate={handleUpdateActivity}
-              onDelete={handleDeleteActivity}
-            />
-          ))}
+        <ActivityTimeline
+          activities={day.activities}
+          onUpdate={handleUpdateActivity}
+          onDelete={handleDeleteActivity}
+          onReorder={(reordered) => updateDay({ activities: reordered })}
+        />
+        <div className="pl-9 mt-2">
           <AddActivityDialog onAdd={handleAddActivity} />
         </div>
       </div>
