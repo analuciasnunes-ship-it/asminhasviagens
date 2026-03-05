@@ -19,11 +19,31 @@ export interface DayPlan {
   activities: Activity[];
 }
 
+export interface Flight {
+  id: string;
+  origin: string;
+  destination: string;
+  date: string;
+  airline?: string;
+  price?: number;
+}
+
+export interface Accommodation {
+  id: string;
+  placeName: string;
+  address?: string;
+  checkIn: string;
+  checkOut: string;
+  price?: number;
+}
+
 export interface Trip {
   id: string;
   destination: string;
   startDate: string;
   endDate: string;
   coverImage?: string;
+  flights: Flight[];
+  accommodations: Accommodation[];
   days: DayPlan[];
 }
