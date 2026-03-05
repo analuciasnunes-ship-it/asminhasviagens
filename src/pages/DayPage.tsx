@@ -1,10 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useTrips } from "@/hooks/useTrips";
-import { AddActivityDialog } from "@/components/AddActivityDialog";
+import { AddDayItemMenu } from "@/components/AddDayItemMenu";
 import { ActivityTimeline } from "@/components/ActivityTimeline";
 import { TripDetails } from "@/components/TripDetails";
-import { Activity, Flight, Accommodation, RentalCar } from "@/types/trip";
-import { ArrowLeft } from "lucide-react";
+import { MealCard } from "@/components/MealCard";
+import { ExpenseCard } from "@/components/ExpenseCard";
+import { Activity, Flight, Accommodation, RentalCar, Meal, Expense } from "@/types/trip";
+import { ArrowLeft, ShoppingCart, Receipt } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 
@@ -23,8 +25,12 @@ const DayPage = () => {
     );
   }
 
+  const participants = trip.participants || [];
   const dateLabel = format(new Date(day.date), "EEEE, d 'de' MMMM", { locale: pt });
-  const dayCost = day.activities.reduce((s, a) => s + (a.cost || 0), 0);
+  const activityCost = day.activities.reduce((s, a) => s + (a.cost || 0), 0);
+  const mealCost = (day.meals || []).reduce((s, m) => s + m.totalBill, 0);
+  const expenseCost = (day.expenses || []).reduce((s, e) => s + e.amount, 0);
+  const dayCost = activityCost + mealCost + expenseCost;
 
   const updateDay = (patch: Partial<typeof day>) => {
     updateTrip({
@@ -37,6 +43,17 @@ const DayPage = () => {
   const handleUpdateActivity = (updated: Activity) => updateDay({ activities: day.activities.map((a) => (a.id === updated.id ? updated : a)) });
   const handleDeleteActivity = (activityId: string) => updateDay({ activities: day.activities.filter((a) => a.id !== activityId) });
 
+  // Meals
+  const dayMeals = day.meals || [];
+  const handleAddMeal = (meal: Meal) => updateDay({ meals: [...dayMeals, meal] });
+  const handleUpdateMeal = (meal: Meal) => updateDay({ meals: dayMeals.map((m) => (m.id === meal.id ? meal : m)) });
+  const handleDeleteMeal = (mealId: string) => updateDay({ meals: dayMeals.filter((m) => m.id !== mealId) });
+
+  // Expenses
+  const dayExpenses = day.expenses || [];
+  const handleAddExpense = (expense: Expense) => updateDay({ expenses: [...dayExpenses, expense] });
+  const handleDeleteExpense = (expenseId: string) => updateDay({ expenses: dayExpenses.filter((e) => e.id !== expenseId) });
+
   // Day-level detail handlers
   const dayFlights = day.flights || [];
   const dayAccommodations = day.accommodations || [];
@@ -48,6 +65,11 @@ const DayPage = () => {
   const handleRemoveFlight = (fid: string) => updateDay({ flights: dayFlights.filter((x) => x.id !== fid) });
   const handleRemoveAccommodation = (aid: string) => updateDay({ accommodations: dayAccommodations.filter((x) => x.id !== aid) });
   const handleRemoveCar = (cid: string) => updateDay({ rentalCars: dayRentalCars.filter((x) => x.id !== cid) });
+
+  // Merge meals into timeline-compatible items for display
+  const sortedMeals = [...dayMeals].sort((a, b) => a.time.localeCompare(b.time));
+  const supermarketExpenses = dayExpenses.filter((e) => e.type === "supermarket");
+  const otherExpenses = dayExpenses.filter((e) => e.type === "other");
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,15 +108,73 @@ const DayPage = () => {
           compact
         />
 
+        {/* Activity Timeline */}
         <ActivityTimeline
           activities={day.activities}
           onUpdate={handleUpdateActivity}
           onDelete={handleDeleteActivity}
           onReorder={(reordered) => updateDay({ activities: reordered })}
         />
+
+        {/* Meals in timeline */}
+        {sortedMeals.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {sortedMeals.map((meal) => (
+              <div key={meal.id} className="flex items-stretch">
+                <div className="flex flex-col items-center w-6 shrink-0 mr-3">
+                  <div className="w-[2px] flex-1 bg-border" />
+                  <div className="w-3 h-3 rounded-full shrink-0 border-2 bg-warning/20 border-warning" />
+                  <div className="w-[2px] flex-1 bg-transparent" />
+                </div>
+                <div className="flex-1 min-w-0 py-1">
+                  <span className="text-xs font-semibold tabular-nums text-muted-foreground mb-1 block">
+                    {meal.time}
+                  </span>
+                  <MealCard meal={meal} participants={participants} onDelete={handleDeleteMeal} onUpdate={handleUpdateMeal} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add item menu */}
         <div className="pl-9 mt-2">
-          <AddActivityDialog onAdd={handleAddActivity} />
+          <AddDayItemMenu
+            participants={participants}
+            onAddActivity={handleAddActivity}
+            onAddMeal={handleAddMeal}
+            onAddExpense={handleAddExpense}
+          />
         </div>
+
+        {/* Expenses section (after timeline) */}
+        {(supermarketExpenses.length > 0 || otherExpenses.length > 0) && (
+          <div className="mt-8 space-y-4">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Despesas do dia
+            </h3>
+            {supermarketExpenses.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                  <ShoppingCart size={12} /> Supermercado
+                </h4>
+                {supermarketExpenses.map((exp) => (
+                  <ExpenseCard key={exp.id} expense={exp} participants={participants} onDelete={handleDeleteExpense} />
+                ))}
+              </div>
+            )}
+            {otherExpenses.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                  <Receipt size={12} /> Outras despesas
+                </h4>
+                {otherExpenses.map((exp) => (
+                  <ExpenseCard key={exp.id} expense={exp} participants={participants} onDelete={handleDeleteExpense} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

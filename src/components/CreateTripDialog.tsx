@@ -17,6 +17,17 @@ export function CreateTripDialog({ onCreateTrip }: Props) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [coverImage, setCoverImage] = useState("");
+  const [participantInput, setParticipantInput] = useState("");
+  const [participantNames, setParticipantNames] = useState<string[]>([]);
+
+  const addParticipant = () => {
+    const name = participantInput.trim();
+    if (name && !participantNames.includes(name)) {
+      setParticipantNames([...participantNames, name]);
+      setParticipantInput("");
+    }
+  };
+  const removeParticipant = (name: string) => setParticipantNames(participantNames.filter((n) => n !== name));
 
   const handleSubmit = () => {
     if (!destination || !startDate || !endDate) return;
@@ -38,6 +49,7 @@ export function CreateTripDialog({ onCreateTrip }: Props) {
       startDate,
       endDate,
       coverImage: coverImage || undefined,
+      participants: participantNames.map((name) => ({ id: crypto.randomUUID(), name })),
       flights: [],
       accommodations: [],
       rentalCars: [],
@@ -50,6 +62,8 @@ export function CreateTripDialog({ onCreateTrip }: Props) {
     setStartDate("");
     setEndDate("");
     setCoverImage("");
+    setParticipantInput("");
+    setParticipantNames([]);
   };
 
   return (
@@ -101,6 +115,30 @@ export function CreateTripDialog({ onCreateTrip }: Props) {
               value={coverImage}
               onChange={(e) => setCoverImage(e.target.value)}
             />
+          </div>
+          <div className="space-y-2">
+            <Label>Participantes</Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Nome"
+                value={participantInput}
+                onChange={(e) => setParticipantInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addParticipant())}
+              />
+              <Button type="button" variant="outline" size="sm" onClick={addParticipant} disabled={!participantInput.trim()}>
+                +
+              </Button>
+            </div>
+            {participantNames.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {participantNames.map((name) => (
+                  <span key={name} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs font-medium text-foreground">
+                    {name}
+                    <button onClick={() => removeParticipant(name)} className="text-muted-foreground hover:text-destructive transition-colors">×</button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
           <Button onClick={handleSubmit} className="w-full" disabled={!destination || !startDate || !endDate}>
             Criar Viagem

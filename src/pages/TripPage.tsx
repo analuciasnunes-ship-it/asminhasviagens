@@ -2,16 +2,22 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTrips } from "@/hooks/useTrips";
 import { DayOverviewCard } from "@/components/DayOverviewCard";
 import { TripDetails } from "@/components/TripDetails";
-import { ArrowLeft, Trash2, Calendar } from "lucide-react";
+import { BalanceSummary } from "@/components/BalanceSummary";
+import { ArrowLeft, Trash2, Calendar, Users } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
-import { Flight, Accommodation, RentalCar } from "@/types/trip";
+import { Flight, Accommodation, RentalCar, Participant } from "@/types/trip";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const TripPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getTrip, updateTrip, deleteTrip } = useTrips();
   const trip = getTrip(id!);
+
+  const [newParticipant, setNewParticipant] = useState("");
 
   if (!trip) {
     return (
@@ -21,8 +27,15 @@ const TripPage = () => {
     );
   }
 
+  const participants = trip.participants || [];
+
   const totalCost = trip.days.reduce(
-    (sum, day) => sum + day.activities.reduce((s, a) => s + (a.cost || 0), 0),
+    (sum, day) => {
+      const actCost = day.activities.reduce((s, a) => s + (a.cost || 0), 0);
+      const mealCost = (day.meals || []).reduce((s, m) => s + m.totalBill, 0);
+      const expCost = (day.expenses || []).reduce((s, e) => s + e.amount, 0);
+      return sum + actCost + mealCost + expCost;
+    },
     0
   );
 
@@ -43,6 +56,18 @@ const TripPage = () => {
     }
   };
 
+  const handleAddParticipant = () => {
+    const name = newParticipant.trim();
+    if (!name || participants.some((p) => p.name === name)) return;
+    const p: Participant = { id: crypto.randomUUID(), name };
+    updateTrip({ ...trip, participants: [...participants, p] });
+    setNewParticipant("");
+  };
+
+  const handleRemoveParticipant = (pid: string) => {
+    updateTrip({ ...trip, participants: participants.filter((p) => p.id !== pid) });
+  };
+
   // Trip-level detail handlers
   const handleAddFlight = (f: Flight) => updateTrip({ ...trip, flights: [...(trip.flights || []), f] });
   const handleAddAccommodation = (a: Accommodation) => updateTrip({ ...trip, accommodations: [...(trip.accommodations || []), a] });
@@ -56,17 +81,12 @@ const TripPage = () => {
       {/* Immersive Hero Header */}
       <div className="relative h-64 sm:h-72 overflow-hidden">
         {trip.coverImage ? (
-          <img
-            src={trip.coverImage}
-            alt={trip.destination}
-            className="w-full h-full object-cover"
-          />
+          <img src={trip.coverImage} alt={trip.destination} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/10 to-secondary" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
 
-        {/* Nav buttons on top */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 z-10">
           <button
             onClick={() => navigate("/")}
@@ -82,7 +102,6 @@ const TripPage = () => {
           </button>
         </div>
 
-        {/* Hero content */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-6 z-10">
           <div className="max-w-lg mx-auto">
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
@@ -111,6 +130,33 @@ const TripPage = () => {
           </div>
         )}
 
+        {/* Participants */}
+        <div className="mb-6 space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <Users size={14} /> Participantes
+          </h3>
+          <div className="flex flex-wrap gap-1.5">
+            {participants.map((p) => (
+              <span key={p.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-xs font-medium text-foreground">
+                {p.name}
+                <button onClick={() => handleRemoveParticipant(p.id)} className="text-muted-foreground hover:text-destructive transition-colors">×</button>
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Adicionar participante"
+              value={newParticipant}
+              onChange={(e) => setNewParticipant(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddParticipant())}
+              className="text-sm h-8"
+            />
+            <Button variant="outline" size="sm" onClick={handleAddParticipant} disabled={!newParticipant.trim()}>
+              +
+            </Button>
+          </div>
+        </div>
+
         <TripDetails
           flights={trip.flights || []}
           accommodations={trip.accommodations || []}
@@ -134,6 +180,13 @@ const TripPage = () => {
             />
           ))}
         </div>
+
+        {/* Balance summary */}
+        {participants.length > 0 && (
+          <div className="mt-8">
+            <BalanceSummary trip={trip} onUpdate={updateTrip} />
+          </div>
+        )}
       </div>
     </div>
   );
