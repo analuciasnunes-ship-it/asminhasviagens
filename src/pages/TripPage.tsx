@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTrips } from "@/hooks/useTrips";
 import { DayOverviewCard } from "@/components/DayOverviewCard";
 import { TripDetails } from "@/components/TripDetails";
-import { BalanceSummary } from "@/components/BalanceSummary";
+import { TripExpenseSummaryCard } from "@/components/TripExpenseSummaryCard";
 import { ArrowLeft, Trash2, Calendar, Users } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -157,6 +157,11 @@ const TripPage = () => {
           </div>
         </div>
 
+        {/* Expense summary card */}
+        <div className="mb-6">
+          <TripExpenseSummaryCard trip={trip} onClick={() => navigate(`/trip/${trip.id}/expenses`)} />
+        </div>
+
         <TripDetails
           flights={trip.flights || []}
           accommodations={trip.accommodations || []}
@@ -180,13 +185,6 @@ const TripPage = () => {
             />
           ))}
         </div>
-
-        {/* Balance summary */}
-        {participants.length > 0 && (
-          <div className="mt-8">
-            <BalanceSummary trip={trip} onUpdate={updateTrip} />
-          </div>
-        )}
       </div>
     </div>
   );
