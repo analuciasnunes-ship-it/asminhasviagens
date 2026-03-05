@@ -48,19 +48,20 @@ export function TripDetails({
   };
 
   const searchFlight = async () => {
-    if (!flightDraft.flightNumber) return;
+    if (!flightDraft.flightNumber || !flightDraft.date) return;
     setFlightSearching(true);
     setFlightSearchError("");
     try {
       const params = new URLSearchParams({
         access_key: "ad172f1d969431cc8ba7c778cdc99816",
         flight_iata: flightDraft.flightNumber.toUpperCase().replace(/\s/g, ""),
+        flight_date: flightDraft.date,
       });
       const res = await fetch(`https://api.aviationstack.com/v1/flights?${params}`);
       const json = await res.json();
       const flight = json?.data?.[0];
       if (!flight) {
-        setFlightSearchError("Não foi possível obter os dados do voo automaticamente. Preencha manualmente.");
+        setFlightSearchError("Não foi possível encontrar este voo para a data selecionada.");
         return;
       }
       setFlightDraft((prev) => ({
@@ -68,12 +69,11 @@ export function TripDetails({
         airline: flight.airline?.name || prev.airline,
         origin: flight.departure?.iata || prev.origin,
         destination: flight.arrival?.iata || prev.destination,
-        date: flight.flight_date || prev.date,
         departureTime: flight.departure?.scheduled?.slice(11, 16) || prev.departureTime,
         arrivalTime: flight.arrival?.scheduled?.slice(11, 16) || prev.arrivalTime,
       }));
     } catch {
-      setFlightSearchError("Não foi possível obter os dados do voo automaticamente. Preencha manualmente.");
+      setFlightSearchError("Não foi possível encontrar este voo para a data selecionada.");
     } finally {
       setFlightSearching(false);
     }
@@ -205,20 +205,17 @@ export function TripDetails({
             <Plane size={14} className="text-primary" />
             <span className="text-sm font-semibold text-foreground">Novo voo</span>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1"><Label className="text-xs">Número do voo</Label><Input className="h-8 text-sm" placeholder="TP1234" value={flightDraft.flightNumber} onChange={(e) => setFlightDraft({ ...flightDraft, flightNumber: e.target.value })} /></div>
-            <div className="flex items-end">
-              <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={searchFlight} disabled={!flightDraft.flightNumber || flightSearching}>
-                {flightSearching ? "A procurar…" : "Procurar voo"}
-              </Button>
-            </div>
-          </div>
+          <div className="space-y-1"><Label className="text-xs">Número do voo</Label><Input className="h-8 text-sm" placeholder="TP1234" value={flightDraft.flightNumber} onChange={(e) => setFlightDraft({ ...flightDraft, flightNumber: e.target.value })} /></div>
+          <div className="space-y-1"><Label className="text-xs">Data do voo *</Label><Input className="h-8 text-sm" type="date" value={flightDraft.date} onChange={(e) => setFlightDraft({ ...flightDraft, date: e.target.value })} /></div>
+          <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={searchFlight} disabled={!flightDraft.flightNumber || !flightDraft.date || flightSearching}>
+            {flightSearching ? "A procurar…" : "Procurar voo"}
+          </Button>
           {flightSearchError && <p className="text-xs text-destructive">{flightSearchError}</p>}
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1"><Label className="text-xs">Origem *</Label><Input className="h-8 text-sm" placeholder="LIS" value={flightDraft.origin} onChange={(e) => setFlightDraft({ ...flightDraft, origin: e.target.value })} /></div>
             <div className="space-y-1"><Label className="text-xs">Destino *</Label><Input className="h-8 text-sm" placeholder="CDG" value={flightDraft.destination} onChange={(e) => setFlightDraft({ ...flightDraft, destination: e.target.value })} /></div>
           </div>
-          <div className="space-y-1"><Label className="text-xs">Data *</Label><Input className="h-8 text-sm" type="date" value={flightDraft.date} onChange={(e) => setFlightDraft({ ...flightDraft, date: e.target.value })} /></div>
+          
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1"><Label className="text-xs">Partida</Label><Input className="h-8 text-sm" type="time" value={flightDraft.departureTime} onChange={(e) => setFlightDraft({ ...flightDraft, departureTime: e.target.value })} /></div>
             <div className="space-y-1"><Label className="text-xs">Chegada</Label><Input className="h-8 text-sm" type="time" value={flightDraft.arrivalTime} onChange={(e) => setFlightDraft({ ...flightDraft, arrivalTime: e.target.value })} /></div>
