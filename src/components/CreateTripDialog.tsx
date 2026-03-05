@@ -38,6 +38,8 @@ export function CreateTripDialog({ onCreateTrip }: Props) {
       startDate,
       endDate,
       coverImage: coverImage || undefined,
+      flights: [],
+      accommodations: [],
       days,
     };
 

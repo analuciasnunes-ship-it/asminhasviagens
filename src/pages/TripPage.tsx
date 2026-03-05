@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useTrips } from "@/hooks/useTrips";
 import { DayOverviewCard } from "@/components/DayOverviewCard";
+import { TripLogistics } from "@/components/TripLogistics";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -70,7 +71,9 @@ const TripPage = () => {
           )}
         </header>
 
-        <div className="space-y-3">
+        <TripLogistics trip={trip} onUpdate={updateTrip} />
+
+        <div className="mt-6 space-y-3">
           {trip.days.map((day) => (
             <DayOverviewCard
               key={day.id}
