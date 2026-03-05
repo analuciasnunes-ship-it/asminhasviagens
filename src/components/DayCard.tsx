@@ -1,6 +1,7 @@
 import { DayPlan, Activity } from "@/types/trip";
 import { ActivityCard } from "./ActivityCard";
 import { AddActivityDialog } from "./AddActivityDialog";
+import { sortActivities } from "@/lib/sortActivities";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 
@@ -47,7 +48,7 @@ export function DayCard({ day, onUpdateDay }: Props) {
         )}
       </div>
       <div className="space-y-2">
-        {day.activities.map((activity) => (
+        {sortActivities(day.activities).map((activity) => (
           <ActivityCard
             key={activity.id}
             activity={activity}

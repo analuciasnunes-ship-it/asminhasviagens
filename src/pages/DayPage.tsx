@@ -4,6 +4,7 @@ import { ActivityCard } from "@/components/ActivityCard";
 import { AddActivityDialog } from "@/components/AddActivityDialog";
 import { TripDetails } from "@/components/TripDetails";
 import { Activity, Flight, Accommodation, RentalCar } from "@/types/trip";
+import { sortActivities } from "@/lib/sortActivities";
 import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -87,7 +88,7 @@ const DayPage = () => {
         />
 
         <div className="space-y-2">
-          {day.activities.map((activity) => (
+          {sortActivities(day.activities).map((activity) => (
             <ActivityCard
               key={activity.id}
               activity={activity}

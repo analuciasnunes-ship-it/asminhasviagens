@@ -2,6 +2,7 @@ export interface Activity {
   id: string;
   title: string;
   time?: string;
+  timeLocked?: boolean;
   description?: string;
   cost?: number;
   link?: string;
