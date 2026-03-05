@@ -24,9 +24,14 @@ export interface DayPlan {
 
 export interface Flight {
   id: string;
-  flightNumber: string;
+  type: "roundtrip" | "oneway";
+  origin: string;
+  destination: string;
+  flightNumber?: string;
   departureTime?: string;
   arrivalTime?: string;
+  returnDepartureTime?: string;
+  returnArrivalTime?: string;
   price?: number;
 }
 
