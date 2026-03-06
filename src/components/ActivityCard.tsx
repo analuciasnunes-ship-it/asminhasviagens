@@ -1,5 +1,5 @@
 import { Activity, Participant } from "@/types/trip";
-import { Check, Clock, ExternalLink, Lock, LockOpen, MapPin, Pencil, Star, Trash2 } from "lucide-react";
+import { Camera, Check, Clock, ExternalLink, Lock, LockOpen, MapPin, MessageSquarePlus, Pencil, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { AddActivityDialog } from "./AddActivityDialog";
@@ -13,6 +13,8 @@ interface Props {
 
 export function ActivityCard({ activity, participants = [], onUpdate, onDelete }: Props) {
   const [editOpen, setEditOpen] = useState(false);
+  const [showNote, setShowNote] = useState(false);
+  const [showPhoto, setShowPhoto] = useState(false);
   const isVisited = activity.status === "visitado";
 
   const toggleStatus = () => {
@@ -133,7 +135,7 @@ export function ActivityCard({ activity, participants = [], onUpdate, onDelete }
         </div>
 
         {isVisited && (
-          <div className="px-3 pb-3 space-y-3 border-t border-success/10 pt-3 mx-3">
+          <div className="px-3 pb-3 space-y-2 border-t border-success/10 pt-3 mx-3">
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((s) => (
                 <button key={s} onClick={() => setRating(s)}>
@@ -148,25 +150,55 @@ export function ActivityCard({ activity, participants = [], onUpdate, onDelete }
                 </button>
               ))}
             </div>
-            <Textarea
-              placeholder="Notas ou comentários..."
-              value={activity.comments || ""}
-              onChange={(e) => onUpdate({ ...activity, comments: e.target.value })}
-              className="text-sm min-h-[60px] resize-none"
-            />
-            <div>
-              <label className="text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
-                + Adicionar foto
-                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-              </label>
-              {activity.photos && activity.photos.length > 0 && (
-                <div className="flex gap-2 mt-2 overflow-x-auto">
+
+            {/* Show existing note or "Add note" button */}
+            {activity.comments || showNote ? (
+              <Textarea
+                placeholder="Notas ou comentários..."
+                value={activity.comments || ""}
+                onChange={(e) => onUpdate({ ...activity, comments: e.target.value })}
+                className="text-sm min-h-[60px] resize-none"
+                autoFocus={showNote && !activity.comments}
+              />
+            ) : (
+              <button
+                onClick={() => setShowNote(true)}
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <MessageSquarePlus size={13} />
+                Adicionar nota
+              </button>
+            )}
+
+            {/* Show existing photos or "Add photo" button */}
+            {activity.photos && activity.photos.length > 0 ? (
+              <div>
+                <div className="flex gap-2 overflow-x-auto">
                   {activity.photos.map((p, i) => (
                     <img key={i} src={p} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0" />
                   ))}
                 </div>
-              )}
-            </div>
+                <label className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                  <Camera size={13} />
+                  Adicionar foto
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                </label>
+              </div>
+            ) : showPhoto ? (
+              <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                <Camera size={13} />
+                Escolher foto
+                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+              </label>
+            ) : (
+              <button
+                onClick={() => setShowPhoto(true)}
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Camera size={13} />
+                Adicionar foto
+              </button>
+            )}
           </div>
         )}
       </div>
