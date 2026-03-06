@@ -27,7 +27,7 @@ export function calculateBalances(trip: Trip): Balance[] {
     owed[p.id] = 0;
   });
 
-  // Gather all meals and expenses from all days
+  // Gather all meals, expenses, and activity expenses from all days
   for (const day of trip.days) {
     for (const meal of day.meals || []) {
       if (paid[meal.paidBy] !== undefined) paid[meal.paidBy] += meal.totalBill;
@@ -41,6 +41,16 @@ export function calculateBalances(trip: Trip): Balance[] {
       const share = exp.amount / (exp.sharedBy.length || 1);
       for (const pid of exp.sharedBy) {
         if (owed[pid] !== undefined) owed[pid] += share;
+      }
+    }
+    // Activity expenses with splitting
+    for (const act of day.activities || []) {
+      if (act.cost && act.paidBy && act.sharedBy && act.sharedBy.length > 0) {
+        if (paid[act.paidBy] !== undefined) paid[act.paidBy] += act.cost;
+        const share = act.cost / act.sharedBy.length;
+        for (const pid of act.sharedBy) {
+          if (owed[pid] !== undefined) owed[pid] += share;
+        }
       }
     }
   }

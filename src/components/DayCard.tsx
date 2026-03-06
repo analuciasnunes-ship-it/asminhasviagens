@@ -8,9 +8,10 @@ import { pt } from "date-fns/locale";
 interface Props {
   day: DayPlan;
   onUpdateDay: (day: DayPlan) => void;
+  participants?: import("@/types/trip").Participant[];
 }
 
-export function DayCard({ day, onUpdateDay }: Props) {
+export function DayCard({ day, onUpdateDay, participants = [] }: Props) {
   const dateLabel = format(new Date(day.date), "EEEE, d 'de' MMMM", { locale: pt });
   const dayCost = day.activities.reduce((s, a) => s + (a.cost || 0), 0);
 
@@ -52,6 +53,7 @@ export function DayCard({ day, onUpdateDay }: Props) {
           <ActivityCard
             key={activity.id}
             activity={activity}
+            participants={participants}
             onUpdate={handleUpdateActivity}
             onDelete={handleDeleteActivity}
           />

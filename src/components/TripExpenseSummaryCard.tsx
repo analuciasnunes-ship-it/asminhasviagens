@@ -11,7 +11,8 @@ export function TripExpenseSummaryCard({ trip, onClick }: Props) {
   const dayCost = trip.days.reduce((sum, day) => {
     const mealCost = (day.meals || []).reduce((s, m) => s + m.totalBill, 0);
     const expCost = (day.expenses || []).reduce((s, e) => s + e.amount, 0);
-    return sum + mealCost + expCost;
+    const actCost = (day.activities || []).reduce((s, a) => s + (a.cost || 0), 0);
+    return sum + mealCost + expCost + actCost;
   }, 0);
 
   // Detail-level costs (flights, accommodation, cars, other) at trip and day level
