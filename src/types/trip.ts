@@ -72,6 +72,7 @@ export interface DayPlan {
   flights?: Flight[];
   accommodations?: Accommodation[];
   rentalCars?: RentalCar[];
+  otherDetails?: OtherDetail[];
   meals?: Meal[];
   expenses?: Expense[];
 }
@@ -87,6 +88,8 @@ export interface Flight {
   returnDepartureTime?: string;
   returnArrivalTime?: string;
   price?: number;
+  paidBy?: string;
+  sharedBy?: string[];
 }
 
 export interface Accommodation {
@@ -96,6 +99,8 @@ export interface Accommodation {
   checkIn: string;
   checkOut: string;
   price?: number;
+  paidBy?: string;
+  sharedBy?: string[];
 }
 
 export interface RentalCar {
@@ -104,6 +109,17 @@ export interface RentalCar {
   pickupDate: string;
   dropoffDate: string;
   price?: number;
+  paidBy?: string;
+  sharedBy?: string[];
+}
+
+export interface OtherDetail {
+  id: string;
+  description: string;
+  notes?: string;
+  price?: number;
+  paidBy?: string;
+  sharedBy?: string[];
 }
 
 export interface Trip {
@@ -116,6 +132,7 @@ export interface Trip {
   flights: Flight[];
   accommodations: Accommodation[];
   rentalCars: RentalCar[];
+  otherDetails?: OtherDetail[];
   days: DayPlan[];
   payments?: Payment[];
 }
