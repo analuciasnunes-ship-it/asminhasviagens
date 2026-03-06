@@ -1,5 +1,5 @@
 import { Activity, Participant } from "@/types/trip";
-import { Check, Clock, ExternalLink, Lock, LockOpen, Pencil, Star, Trash2 } from "lucide-react";
+import { Check, Clock, ExternalLink, Lock, LockOpen, MapPin, Pencil, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { AddActivityDialog } from "./AddActivityDialog";
@@ -66,10 +66,11 @@ export function ActivityCard({ activity, participants = [], onUpdate, onDelete }
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <h4
-                className={`font-medium text-sm ${
+                className={`font-medium text-sm flex items-center gap-1.5 ${
                   isVisited ? "line-through text-muted-foreground" : "text-foreground"
                 }`}
               >
+                <MapPin size={13} className="text-primary/60 shrink-0" />
                 {activity.title}
               </h4>
               <div className="flex items-center gap-2 shrink-0">
