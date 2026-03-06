@@ -5,7 +5,7 @@ import { ActivityTimeline } from "@/components/ActivityTimeline";
 import { TripDetails } from "@/components/TripDetails";
 
 import { ExpenseCard } from "@/components/ExpenseCard";
-import { Activity, Flight, Accommodation, RentalCar, Meal, Expense } from "@/types/trip";
+import { Activity, Flight, Accommodation, RentalCar, OtherDetail, Meal, Expense } from "@/types/trip";
 import { ArrowLeft, ShoppingCart, Receipt } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -59,13 +59,16 @@ const DayPage = () => {
   const dayFlights = day.flights || [];
   const dayAccommodations = day.accommodations || [];
   const dayRentalCars = day.rentalCars || [];
+  const dayOtherDetails = day.otherDetails || [];
 
   const handleAddFlight = (f: Flight) => updateDay({ flights: [...dayFlights, f] });
   const handleAddAccommodation = (a: Accommodation) => updateDay({ accommodations: [...dayAccommodations, a] });
   const handleAddCar = (c: RentalCar) => updateDay({ rentalCars: [...dayRentalCars, c] });
+  const handleAddOther = (o: OtherDetail) => updateDay({ otherDetails: [...dayOtherDetails, o] });
   const handleRemoveFlight = (fid: string) => updateDay({ flights: dayFlights.filter((x) => x.id !== fid) });
   const handleRemoveAccommodation = (aid: string) => updateDay({ accommodations: dayAccommodations.filter((x) => x.id !== aid) });
   const handleRemoveCar = (cid: string) => updateDay({ rentalCars: dayRentalCars.filter((x) => x.id !== cid) });
+  const handleRemoveOther = (oid: string) => updateDay({ otherDetails: dayOtherDetails.filter((x) => x.id !== oid) });
 
   const supermarketExpenses = dayExpenses.filter((e) => e.type === "supermarket");
   const otherExpenses = dayExpenses.filter((e) => e.type === "other");
@@ -98,12 +101,16 @@ const DayPage = () => {
           flights={dayFlights}
           accommodations={dayAccommodations}
           rentalCars={dayRentalCars}
+          otherDetails={dayOtherDetails}
+          participants={participants}
           onAddFlight={handleAddFlight}
           onAddAccommodation={handleAddAccommodation}
           onAddCar={handleAddCar}
+          onAddOther={handleAddOther}
           onRemoveFlight={handleRemoveFlight}
           onRemoveAccommodation={handleRemoveAccommodation}
           onRemoveCar={handleRemoveCar}
+          onRemoveOther={handleRemoveOther}
           compact
         />
 

@@ -45,6 +45,31 @@ export function calculateBalances(trip: Trip): Balance[] {
     }
   }
 
+  // Include trip-level detail expenses (flights, accommodations, cars, other)
+  const detailItems = [
+    ...(trip.flights || []),
+    ...(trip.accommodations || []),
+    ...(trip.rentalCars || []),
+    ...(trip.otherDetails || []),
+  ];
+  for (const day of trip.days) {
+    detailItems.push(
+      ...(day.flights || []),
+      ...(day.accommodations || []),
+      ...(day.rentalCars || []),
+      ...(day.otherDetails || []),
+    );
+  }
+  for (const item of detailItems) {
+    if (item.price && item.paidBy && item.sharedBy && item.sharedBy.length > 0) {
+      if (paid[item.paidBy] !== undefined) paid[item.paidBy] += item.price;
+      const share = item.price / item.sharedBy.length;
+      for (const pid of item.sharedBy) {
+        if (owed[pid] !== undefined) owed[pid] += share;
+      }
+    }
+  }
+
   // Factor in payments
   for (const payment of trip.payments || []) {
     if (paid[payment.from] !== undefined) paid[payment.from] += payment.amount;

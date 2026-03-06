@@ -6,7 +6,7 @@ import { TripExpenseSummaryCard } from "@/components/TripExpenseSummaryCard";
 import { ArrowLeft, Trash2, Calendar, Users } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
-import { Flight, Accommodation, RentalCar, Participant } from "@/types/trip";
+import { Flight, Accommodation, RentalCar, OtherDetail, Participant } from "@/types/trip";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -72,9 +72,11 @@ const TripPage = () => {
   const handleAddFlight = (f: Flight) => updateTrip({ ...trip, flights: [...(trip.flights || []), f] });
   const handleAddAccommodation = (a: Accommodation) => updateTrip({ ...trip, accommodations: [...(trip.accommodations || []), a] });
   const handleAddCar = (c: RentalCar) => updateTrip({ ...trip, rentalCars: [...(trip.rentalCars || []), c] });
+  const handleAddOther = (o: OtherDetail) => updateTrip({ ...trip, otherDetails: [...(trip.otherDetails || []), o] });
   const handleRemoveFlight = (fid: string) => updateTrip({ ...trip, flights: (trip.flights || []).filter((x) => x.id !== fid) });
   const handleRemoveAccommodation = (aid: string) => updateTrip({ ...trip, accommodations: (trip.accommodations || []).filter((x) => x.id !== aid) });
   const handleRemoveCar = (cid: string) => updateTrip({ ...trip, rentalCars: (trip.rentalCars || []).filter((x) => x.id !== cid) });
+  const handleRemoveOther = (oid: string) => updateTrip({ ...trip, otherDetails: (trip.otherDetails || []).filter((x) => x.id !== oid) });
 
   return (
     <div className="min-h-screen bg-background">
@@ -166,12 +168,16 @@ const TripPage = () => {
           flights={trip.flights || []}
           accommodations={trip.accommodations || []}
           rentalCars={trip.rentalCars || []}
+          otherDetails={trip.otherDetails || []}
+          participants={participants}
           onAddFlight={handleAddFlight}
           onAddAccommodation={handleAddAccommodation}
           onAddCar={handleAddCar}
+          onAddOther={handleAddOther}
           onRemoveFlight={handleRemoveFlight}
           onRemoveAccommodation={handleRemoveAccommodation}
           onRemoveCar={handleRemoveCar}
+          onRemoveOther={handleRemoveOther}
         />
 
         <div className="space-y-3">
