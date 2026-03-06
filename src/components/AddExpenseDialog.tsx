@@ -118,7 +118,13 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger, ed
           </div>
 
           <div className="space-y-2">
-            <Label>Dividir entre</Label>
+            <div className="flex items-center justify-between">
+              <Label>Dividir entre</Label>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setSharedBy(participants.map((p) => p.id))} className="text-xs text-primary hover:underline">Todos</button>
+                <button type="button" onClick={() => setSharedBy([])} className="text-xs text-muted-foreground hover:underline">Limpar</button>
+              </div>
+            </div>
             <div className="space-y-1.5">
               {participants.map((p) => (
                 <label key={p.id} className="flex items-center gap-2 text-sm">
