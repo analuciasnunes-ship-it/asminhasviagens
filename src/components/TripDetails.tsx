@@ -71,7 +71,13 @@ function ExpenseSplitFields({ participants, paidBy, sharedBy, onPaidByChange, on
         </div>
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">Dividir entre</Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-xs">Dividir entre</Label>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => onSharedByChange(participants.map((p) => p.id))} className="text-[11px] text-primary hover:underline">Todos</button>
+            <button type="button" onClick={() => onSharedByChange([])} className="text-[11px] text-muted-foreground hover:underline">Limpar</button>
+          </div>
+        </div>
         <div className="space-y-1">
           {participants.map((p) => (
             <label key={p.id} className="flex items-center gap-2 text-xs">
