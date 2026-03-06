@@ -66,9 +66,7 @@ export function ActivityCard({ activity, participants = [], onUpdate, onDelete }
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <h4
-                className={`font-medium text-sm flex items-center gap-1.5 ${
-                  isVisited ? "line-through text-muted-foreground" : "text-foreground"
-                }`}
+                className="font-medium text-sm flex items-center gap-1.5 text-foreground"
               >
                 <MapPin size={13} className="text-primary/60 shrink-0" />
                 {activity.title}
