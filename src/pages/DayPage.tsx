@@ -5,7 +5,7 @@ import { ActivityTimeline } from "@/components/ActivityTimeline";
 import { TripDetails } from "@/components/TripDetails";
 
 import { ExpenseCard } from "@/components/ExpenseCard";
-import { Activity, Flight, Accommodation, RentalCar, OtherDetail, Meal, Expense } from "@/types/trip";
+import { Activity, Flight, Accommodation, RentalCar, OtherDetail, Meal, Expense, DURATION_OPTIONS } from "@/types/trip";
 import { ArrowLeft, ShoppingCart, Receipt } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -88,13 +88,31 @@ const DayPage = () => {
             Dia {day.dayNumber}{day.title ? ` – ${day.title}` : ""}
           </h1>
           <p className="text-sm text-muted-foreground mt-1 capitalize">{dateLabel}</p>
-          {dayCost > 0 && (
-            <div className="mt-3 inline-flex items-center bg-secondary px-3 py-1.5 rounded-full">
-              <span className="text-sm font-semibold text-foreground">
-                Total: {dayCost.toFixed(2)}€
-              </span>
-            </div>
-          )}
+          {(() => {
+            const itemCount = day.activities.length + (day.meals || []).length;
+            const totalDurationMin = day.activities.reduce((sum, a) => {
+              if (!a.estimatedDuration) return sum;
+              const opt = DURATION_OPTIONS.find((o) => o.label === a.estimatedDuration);
+              return sum + (opt?.minutes || 0);
+            }, 0);
+            const durationH = Math.floor(totalDurationMin / 60);
+            const durationM = totalDurationMin % 60;
+            const durationLabel = durationM > 0
+              ? (durationH > 0 ? `${durationH}h${durationM.toString().padStart(2, "0")}` : `${durationM}m`)
+              : (durationH > 0 ? `${durationH}h` : "");
+            const parts: string[] = [];
+            if (dayCost > 0) parts.push(`${dayCost.toFixed(0)}€`);
+            if (itemCount > 0) parts.push(`${itemCount} ${itemCount === 1 ? "atividade" : "atividades"}`);
+            if (durationLabel) parts.push(durationLabel);
+            if (parts.length === 0) return null;
+            return (
+              <div className="mt-3 inline-flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-full">
+                <span className="text-sm font-semibold text-foreground">
+                  {parts.join(" · ")}
+                </span>
+              </div>
+            );
+          })()}
         </header>
 
         <TripDetails
