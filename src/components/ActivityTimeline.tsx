@@ -258,6 +258,7 @@ export function ActivityTimeline({ activities, meals = [], participants = [], on
             </div>
             <ActivityCard
               activity={activity}
+              participants={participants}
               onUpdate={onUpdate}
               onDelete={onDelete}
             />

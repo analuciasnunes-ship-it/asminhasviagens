@@ -37,6 +37,7 @@ export function AddDayItemMenu({ participants, onAddActivity, onAddMeal, onAddEx
           <div className="grid grid-cols-2 gap-2">
             <AddActivityDialog
               onAdd={(a) => { onAddActivity(a); setShowMenu(false); }}
+              participants={participants}
               trigger={
                 <button className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border hover:border-primary/30 hover:bg-secondary/50 transition-all text-center">
                   <MapPin size={18} className="text-primary" />

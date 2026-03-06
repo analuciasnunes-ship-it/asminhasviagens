@@ -26,6 +26,8 @@ export interface Activity {
   estimatedDuration?: DurationLabel;
   description?: string;
   cost?: number;
+  paidBy?: string;
+  sharedBy?: string[];
   link?: string;
   status: "planeado" | "visitado";
   photos?: string[];
