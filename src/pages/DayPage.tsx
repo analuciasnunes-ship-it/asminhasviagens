@@ -4,9 +4,8 @@ import { AddDayItemMenu } from "@/components/AddDayItemMenu";
 import { ActivityTimeline } from "@/components/ActivityTimeline";
 import { TripDetails } from "@/components/TripDetails";
 
-import { ExpenseCard } from "@/components/ExpenseCard";
 import { Activity, Flight, Accommodation, RentalCar, OtherDetail, Meal, Expense, DURATION_OPTIONS } from "@/types/trip";
-import { ArrowLeft, ShoppingCart, Receipt } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 
@@ -70,8 +69,8 @@ const DayPage = () => {
   const handleRemoveCar = (cid: string) => updateDay({ rentalCars: dayRentalCars.filter((x) => x.id !== cid) });
   const handleRemoveOther = (oid: string) => updateDay({ otherDetails: dayOtherDetails.filter((x) => x.id !== oid) });
 
-  const supermarketExpenses = dayExpenses.filter((e) => e.type === "supermarket");
-  const otherExpenses = dayExpenses.filter((e) => e.type === "other");
+
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -136,12 +135,15 @@ const DayPage = () => {
         <ActivityTimeline
           activities={day.activities}
           meals={dayMeals}
+          expenses={dayExpenses}
           participants={participants}
           onUpdate={handleUpdateActivity}
           onDelete={handleDeleteActivity}
           onReorder={(reordered) => updateDay({ activities: reordered })}
           onUpdateMeal={handleUpdateMeal}
           onDeleteMeal={handleDeleteMeal}
+          onUpdateExpense={handleUpdateExpense}
+          onDeleteExpense={handleDeleteExpense}
         />
 
         {/* Add item menu */}
@@ -153,35 +155,6 @@ const DayPage = () => {
             onAddExpense={handleAddExpense}
           />
         </div>
-
-        {/* Expenses section (after timeline) */}
-        {(supermarketExpenses.length > 0 || otherExpenses.length > 0) && (
-          <div className="mt-8 space-y-4">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-              Despesas do dia
-            </h3>
-            {supermarketExpenses.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <ShoppingCart size={12} /> Supermercado
-                </h4>
-                {supermarketExpenses.map((exp) => (
-                  <ExpenseCard key={exp.id} expense={exp} participants={participants} onDelete={handleDeleteExpense} onUpdate={handleUpdateExpense} />
-                ))}
-              </div>
-            )}
-            {otherExpenses.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <Receipt size={12} /> Outras despesas
-                </h4>
-                {otherExpenses.map((exp) => (
-                  <ExpenseCard key={exp.id} expense={exp} participants={participants} onDelete={handleDeleteExpense} onUpdate={handleUpdateExpense} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

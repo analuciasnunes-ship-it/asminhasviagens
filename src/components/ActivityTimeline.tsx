@@ -1,23 +1,28 @@
-import { Activity, Meal, Participant, DURATION_OPTIONS } from "@/types/trip";
+import { Activity, Meal, Expense, Participant, DURATION_OPTIONS } from "@/types/trip";
 import { ActivityCard } from "./ActivityCard";
 import { MealCard } from "./MealCard";
+import { ExpenseCard } from "./ExpenseCard";
 import { sortActivities } from "@/lib/sortActivities";
-import { Lock, GripVertical, AlertTriangle, UtensilsCrossed } from "lucide-react";
+import { Lock, GripVertical, AlertTriangle, UtensilsCrossed, ShoppingCart, Receipt } from "lucide-react";
 import { useState, useRef, useCallback } from "react";
 
 type TimelineItem =
   | { kind: "activity"; data: Activity }
-  | { kind: "meal"; data: Meal };
+  | { kind: "meal"; data: Meal }
+  | { kind: "expense"; data: Expense };
 
 interface Props {
   activities: Activity[];
   meals?: Meal[];
+  expenses?: Expense[];
   participants?: Participant[];
   onUpdate: (activity: Activity) => void;
   onDelete: (id: string) => void;
   onReorder: (activities: Activity[]) => void;
   onUpdateMeal?: (meal: Meal) => void;
   onDeleteMeal?: (id: string) => void;
+  onUpdateExpense?: (expense: Expense) => void;
+  onDeleteExpense?: (id: string) => void;
 }
 
 function formatGap(minutes: number): string {
@@ -56,7 +61,9 @@ function formatDurationShort(label: string): string {
 }
 
 function getItemTime(item: TimelineItem): string | undefined {
-  return item.kind === "activity" ? (item.data as Activity).time : (item.data as Meal).time;
+  if (item.kind === "activity") return (item.data as Activity).time;
+  if (item.kind === "meal") return (item.data as Meal).time;
+  return undefined;
 }
 
 function getGapMinutes(a: TimelineItem, b: TimelineItem): number | null {
@@ -67,16 +74,17 @@ function getGapMinutes(a: TimelineItem, b: TimelineItem): number | null {
   return diff > 30 ? diff : null;
 }
 
-export function ActivityTimeline({ activities, meals = [], participants = [], onUpdate, onDelete, onReorder, onUpdateMeal, onDeleteMeal }: Props) {
+export function ActivityTimeline({ activities, meals = [], expenses = [], participants = [], onUpdate, onDelete, onReorder, onUpdateMeal, onDeleteMeal, onUpdateExpense, onDeleteExpense }: Props) {
   const sortedActivities = sortActivities(activities);
 
   // Build unified timeline
   const timelineItems: TimelineItem[] = [
     ...sortedActivities.map((a): TimelineItem => ({ kind: "activity", data: a })),
     ...meals.map((m): TimelineItem => ({ kind: "meal", data: m })),
+    ...expenses.map((e): TimelineItem => ({ kind: "expense", data: e })),
   ].sort((a, b) => {
-    const timeA = a.kind === "activity" ? (a.data as Activity).time : (a.data as Meal).time;
-    const timeB = b.kind === "activity" ? (b.data as Activity).time : (b.data as Meal).time;
+    const timeA = a.kind === "activity" ? (a.data as Activity).time : a.kind === "meal" ? (a.data as Meal).time : undefined;
+    const timeB = b.kind === "activity" ? (b.data as Activity).time : b.kind === "meal" ? (b.data as Meal).time : undefined;
     if (!timeA && !timeB) return 0;
     if (!timeA) return 1;
     if (!timeB) return -1;
@@ -191,6 +199,25 @@ export function ActivityTimeline({ activities, meals = [], participants = [], on
               <UtensilsCrossed size={10} className="text-warning" />
             </div>
             <MealCard meal={meal} participants={participants} onDelete={onDeleteMeal || (() => {})} onUpdate={onUpdateMeal || (() => {})} />
+          </div>
+        </div>
+      );
+    } else if (item.kind === "expense") {
+      const expense = item.data as Expense;
+      const ExpIcon = expense.type === "supermarket" ? ShoppingCart : Receipt;
+      items.push(
+        <div key={expense.id} className="flex items-stretch">
+          <div className="flex flex-col items-center w-6 shrink-0 mr-3">
+            <div className={`w-[2px] flex-1 ${isFirst ? "bg-transparent" : "bg-border"}`} />
+            <div className="w-3 h-3 rounded-full shrink-0 border-2 bg-accent border-muted-foreground/20" />
+            <div className={`w-[2px] flex-1 ${isLast ? "bg-transparent" : "bg-border"}`} />
+          </div>
+          <div className="flex-1 min-w-0 py-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-[11px] text-muted-foreground/40 italic">despesa</span>
+              <ExpIcon size={10} className="text-muted-foreground/40" />
+            </div>
+            <ExpenseCard expense={expense} participants={participants} onDelete={onDeleteExpense || (() => {})} onUpdate={onUpdateExpense} />
           </div>
         </div>
       );
