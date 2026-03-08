@@ -194,8 +194,9 @@ export function TripDetails({
       price: carDraft.price ? parseFloat(carDraft.price) : undefined,
       paidBy: carDraft.paidBy || undefined,
       sharedBy: carDraft.sharedBy.length > 0 ? carDraft.sharedBy : undefined,
+      expensePayments: carDraft.expensePayments.length > 0 ? carDraft.expensePayments : undefined,
     });
-    setCarDraft({ company: "", pickupDate: "", dropoffDate: "", price: "", paidBy: "", sharedBy: [] });
+    setCarDraft({ company: "", pickupDate: "", dropoffDate: "", price: "", paidBy: "", sharedBy: [], expensePayments: [] });
     setActiveForm(null);
   };
 
