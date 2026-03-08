@@ -182,6 +182,10 @@ const TripPage = () => {
           onRemoveAccommodation={handleRemoveAccommodation}
           onRemoveCar={handleRemoveCar}
           onRemoveOther={handleRemoveOther}
+          onUpdateFlight={handleUpdateFlight}
+          onUpdateAccommodation={handleUpdateAccommodation}
+          onUpdateCar={handleUpdateCar}
+          onUpdateOther={handleUpdateOther}
         />
 
         <div className="space-y-3">

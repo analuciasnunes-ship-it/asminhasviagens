@@ -132,6 +132,10 @@ const DayPage = () => {
           onRemoveAccommodation={handleRemoveAccommodation}
           onRemoveCar={handleRemoveCar}
           onRemoveOther={handleRemoveOther}
+          onUpdateFlight={handleUpdateFlight}
+          onUpdateAccommodation={handleUpdateAccommodation}
+          onUpdateCar={handleUpdateCar}
+          onUpdateOther={handleUpdateOther}
           compact
         />
 
