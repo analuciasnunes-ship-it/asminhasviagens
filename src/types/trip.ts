@@ -18,6 +18,14 @@ export interface Participant {
   name: string;
 }
 
+export interface ExpensePayment {
+  id: string;
+  amount: number;
+  paidBy: string; // participant id
+  date: string;
+  status: "paid" | "pending";
+}
+
 export interface Activity {
   id: string;
   title: string;
