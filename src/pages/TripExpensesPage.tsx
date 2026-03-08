@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useTrips } from "@/hooks/useTrips";
-import { ArrowLeft, Wallet, ArrowRight, Trash2, Pencil, Plane, Home, UtensilsCrossed, MapPin, ShoppingCart, Receipt, PieChart } from "lucide-react";
-import { Trip, Payment } from "@/types/trip";
+import { ArrowLeft, Wallet, ArrowRight, Trash2, Pencil, Plane, Home, UtensilsCrossed, MapPin, ShoppingCart, Receipt, PieChart, Calendar, Clock } from "lucide-react";
+import { Trip, Payment, ExpensePayment } from "@/types/trip";
 import { calculateBalances, calculateSettlements, calculateTripTotals } from "@/lib/expenseUtils";
 import { AddPaymentDialog } from "@/components/AddPaymentDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { useState, useMemo } from "react";
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
