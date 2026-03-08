@@ -116,7 +116,7 @@ export function TodayView({ trip, onUpdateActivity, onDeleteActivity }: Props) {
               <div className="flex items-center gap-2 mt-0.5">
                 <Clock size={13} className="text-muted-foreground/60 shrink-0" />
                 <span className="text-sm font-medium text-foreground truncate">
-                  {next.name}
+                  {next.title}
                 </span>
                 <span className="text-xs text-muted-foreground tabular-nums ml-auto shrink-0">
                   {next.time}
