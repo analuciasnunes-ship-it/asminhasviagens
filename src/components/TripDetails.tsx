@@ -167,6 +167,7 @@ export function TripDetails({
       price: owDraft.price ? parseFloat(owDraft.price) : undefined,
       paidBy: owDraft.paidBy || undefined,
       sharedBy: owDraft.sharedBy.length > 0 ? owDraft.sharedBy : undefined,
+      expensePayments: owDraft.expensePayments.length > 0 ? owDraft.expensePayments : undefined,
     });
     resetFlightForm();
   };
