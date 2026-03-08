@@ -96,6 +96,145 @@ function useExpenseCategories(trip: Trip): CategoryData[] {
   }, [trip]);
 }
 
+interface PendingPaymentItem {
+  id: string;
+  expenseName: string;
+  category: string;
+  amount: number;
+  payer: string;
+  dueDate: string;
+  status: "pending";
+}
+
+function usePendingPayments(trip: Trip): PendingPaymentItem[] {
+  return useMemo(() => {
+    const pendingItems: PendingPaymentItem[] = [];
+    const participants = trip.participants || [];
+
+    // Helper to get participant name
+    const getParticipantName = (id: string) => participants.find(p => p.id === id)?.name || "?";
+
+    // Helper to add pending payments from expense payments
+    const addPendingFromExpensePayments = (
+      expensePayments: ExpensePayment[] | undefined,
+      expenseName: string,
+      category: string
+    ) => {
+      if (!expensePayments) return;
+      expensePayments
+        .filter(ep => ep.status === "pending")
+        .forEach(ep => {
+          pendingItems.push({
+            id: ep.id,
+            expenseName,
+            category,
+            amount: ep.amount,
+            payer: getParticipantName(ep.paidBy),
+            dueDate: ep.date,
+            status: "pending"
+          });
+        });
+    };
+
+    // Process all expense sources
+    for (const day of trip.days) {
+      // Meals
+      (day.meals || []).forEach(meal => {
+        addPendingFromExpensePayments(
+          meal.expensePayments,
+          meal.restaurant || "Refeição",
+          "Refeições"
+        );
+      });
+
+      // General expenses
+      (day.expenses || []).forEach(expense => {
+        addPendingFromExpensePayments(
+          expense.expensePayments,
+          expense.description,
+          expense.type === "supermarket" ? "Supermercado" : "Outros"
+        );
+      });
+
+      // Activities
+      (day.activities || []).forEach(activity => {
+        addPendingFromExpensePayments(
+          activity.expensePayments,
+          activity.title,
+          "Atividades"
+        );
+      });
+
+      // Day-level details
+      (day.flights || []).forEach(flight => {
+        const name = flight.flightNumber 
+          ? `Voo ${flight.flightNumber}` 
+          : `${flight.origin || "?"} → ${flight.destination || "?"}`;
+        addPendingFromExpensePayments(flight.expensePayments, name, "Voos");
+      });
+
+      (day.accommodations || []).forEach(acc => {
+        addPendingFromExpensePayments(
+          acc.expensePayments,
+          acc.placeName || "Alojamento",
+          "Alojamento"
+        );
+      });
+
+      (day.rentalCars || []).forEach(car => {
+        addPendingFromExpensePayments(
+          car.expensePayments,
+          car.company || "Carro alugado",
+          "Outros"
+        );
+      });
+
+      (day.otherDetails || []).forEach(other => {
+        addPendingFromExpensePayments(
+          other.expensePayments,
+          other.description || "Outros",
+          "Outros"
+        );
+      });
+    }
+
+    // Trip-level details
+    (trip.flights || []).forEach(flight => {
+      const name = flight.flightNumber 
+        ? `Voo ${flight.flightNumber}` 
+        : `${flight.origin || "?"} → ${flight.destination || "?"}`;
+      addPendingFromExpensePayments(flight.expensePayments, name, "Voos");
+    });
+
+    (trip.accommodations || []).forEach(acc => {
+      addPendingFromExpensePayments(
+        acc.expensePayments,
+        acc.placeName || "Alojamento",
+        "Alojamento"
+      );
+    });
+
+    (trip.rentalCars || []).forEach(car => {
+      addPendingFromExpensePayments(
+        car.expensePayments,
+        car.company || "Carro alugado",
+        "Outros"
+      );
+    });
+
+    (trip.otherDetails || []).forEach(other => {
+      addPendingFromExpensePayments(
+        other.expensePayments,
+        other.description || "Outros",
+        "Outros"
+      );
+    });
+
+    // Sort by due date
+    return pendingItems.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  }, [trip]);
+}
+
 const TripExpensesPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
