@@ -299,21 +299,39 @@ const TripExpensesPage = () => {
         <header className="mb-6">
           <h1 className="text-2xl font-bold text-foreground">Despesas da viagem</h1>
           <p className="text-sm text-muted-foreground mt-1">{trip.destination}</p>
-          {grandTotal > 0 && (
-            <div className="mt-3 space-y-1.5">
-              <div className="inline-flex items-center bg-secondary px-3 py-1.5 rounded-full">
-                <span className="text-sm font-semibold text-foreground">
-                  Total: {tripTotals.total.toFixed(2)}€
-                </span>
+          
+          {tripTotals.total > 0 && (
+            <div className="mt-4 space-y-3">
+              {/* Four metrics */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-card border border-border rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Total estimado</p>
+                  <p className="text-lg font-semibold text-foreground">{tripTotals.total.toFixed(2)}€</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Custo real atual</p>
+                  <p className="text-lg font-semibold text-success">{tripTotals.paid.toFixed(2)}€</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Pago</p>
+                  <p className="text-lg font-semibold text-success">{tripTotals.paid.toFixed(2)}€</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Pendente</p>
+                  <p className="text-lg font-semibold text-warning">{tripTotals.pending.toFixed(2)}€</p>
+                </div>
               </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground px-1">
-                <span className="text-success font-medium">{tripTotals.paid.toFixed(2)}€ pago</span>
-                {tripTotals.pending > 0.01 && (
-                  <>
-                    <span>•</span>
-                    <span className="text-warning font-medium">{tripTotals.pending.toFixed(2)}€ pendente</span>
-                  </>
-                )}
+              
+              {/* Progress bar */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Progresso de pagamento</span>
+                  <span>{tripTotals.total > 0 ? Math.round((tripTotals.paid / tripTotals.total) * 100) : 0}%</span>
+                </div>
+                <Progress 
+                  value={tripTotals.total > 0 ? (tripTotals.paid / tripTotals.total) * 100 : 0} 
+                  className="h-2"
+                />
               </div>
             </div>
           )}
