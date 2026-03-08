@@ -357,6 +357,9 @@ export function TripDetails({
               {formatDate(c.pickupDate)} – {formatDate(c.dropoffDate)}
             </p>
             <SplitInfo participants={participants} paidBy={c.paidBy} sharedBy={c.sharedBy} price={c.price} />
+            {c.price && c.expensePayments && c.expensePayments.length > 0 && (
+              <PaymentStatusBadge totalAmount={c.price} payments={c.expensePayments} />
+            )}
           </div>
           <button onClick={() => onRemoveCar(c.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
             <Trash2 size={14} />
