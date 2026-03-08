@@ -115,6 +115,7 @@ export interface Accommodation {
   price?: number;
   paidBy?: string;
   sharedBy?: string[];
+  expensePayments?: ExpensePayment[];
 }
 
 export interface RentalCar {
