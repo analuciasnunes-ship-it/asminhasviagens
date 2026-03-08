@@ -421,6 +421,17 @@ export function TripDetails({
                 onPaidByChange={(id) => setRtDraft({ ...rtDraft, paidBy: id })}
                 onSharedByChange={(ids) => setRtDraft({ ...rtDraft, sharedBy: ids })}
               />
+              {rtDraft.price && parseFloat(rtDraft.price) > 0 && participants.length > 0 && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Pagamentos (opcional)</Label>
+                  <ExpensePaymentsList
+                    totalAmount={parseFloat(rtDraft.price)}
+                    payments={rtDraft.expensePayments}
+                    participants={participants}
+                    onChange={(p) => setRtDraft({ ...rtDraft, expensePayments: p })}
+                  />
+                </div>
+              )}
               <div className="flex gap-2 pt-1">
                 <Button size="sm" className="flex-1 h-8 text-xs" onClick={addRoundtrip} disabled={!rtDraft.origin || !rtDraft.destination}>Adicionar</Button>
                 <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={resetFlightForm}>Cancelar</Button>
