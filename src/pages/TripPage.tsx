@@ -3,10 +3,12 @@ import { useTrips } from "@/hooks/useTrips";
 import { DayOverviewCard } from "@/components/DayOverviewCard";
 import { TripDetails } from "@/components/TripDetails";
 import { TripExpenseSummaryCard } from "@/components/TripExpenseSummaryCard";
-import { ArrowLeft, Trash2, Calendar, Users } from "lucide-react";
+import { TodayView } from "@/components/TodayView";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ArrowLeft, Trash2, Calendar, Users, MapPin, Clock } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
-import { Flight, Accommodation, RentalCar, OtherDetail, Participant } from "@/types/trip";
+import { Flight, Accommodation, RentalCar, OtherDetail, Participant, Activity } from "@/types/trip";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -129,76 +131,115 @@ const TripPage = () => {
 
       <div className="max-w-lg mx-auto px-4 py-6">
         {totalCost > 0 && (
-          <div className="mb-6 inline-flex items-center bg-secondary px-3 py-1.5 rounded-full">
+          <div className="mb-4 inline-flex items-center bg-secondary px-3 py-1.5 rounded-full">
             <span className="text-sm font-semibold text-foreground">
               Total: {totalCost.toFixed(2)}€
             </span>
           </div>
         )}
 
-        {/* Participants */}
-        <div className="mb-6 space-y-3">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-            <Users size={14} /> Participantes
-          </h3>
-          <div className="flex flex-wrap gap-1.5">
-            {participants.map((p) => (
-              <span key={p.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-xs font-medium text-foreground">
-                {p.name}
-                <button onClick={() => handleRemoveParticipant(p.id)} className="text-muted-foreground hover:text-destructive transition-colors">×</button>
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Adicionar participante"
-              value={newParticipant}
-              onChange={(e) => setNewParticipant(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddParticipant())}
-              className="text-sm h-8"
+        <Tabs defaultValue="planning" className="w-full">
+          <TabsList className="w-full mb-4">
+            <TabsTrigger value="planning" className="flex-1 gap-1.5">
+              <MapPin size={14} /> Planeamento
+            </TabsTrigger>
+            <TabsTrigger value="today" className="flex-1 gap-1.5">
+              <Clock size={14} /> Hoje
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="planning">
+            {/* Participants */}
+            <div className="mb-6 space-y-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <Users size={14} /> Participantes
+              </h3>
+              <div className="flex flex-wrap gap-1.5">
+                {participants.map((p) => (
+                  <span key={p.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-xs font-medium text-foreground">
+                    {p.name}
+                    <button onClick={() => handleRemoveParticipant(p.id)} className="text-muted-foreground hover:text-destructive transition-colors">×</button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Adicionar participante"
+                  value={newParticipant}
+                  onChange={(e) => setNewParticipant(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddParticipant())}
+                  className="text-sm h-8"
+                />
+                <Button variant="outline" size="sm" onClick={handleAddParticipant} disabled={!newParticipant.trim()}>
+                  +
+                </Button>
+              </div>
+            </div>
+
+            {/* Expense summary card */}
+            <div className="mb-6">
+              <TripExpenseSummaryCard trip={trip} onClick={() => navigate(`/trip/${trip.id}/expenses`)} />
+            </div>
+
+            <TripDetails
+              flights={trip.flights || []}
+              accommodations={trip.accommodations || []}
+              rentalCars={trip.rentalCars || []}
+              otherDetails={trip.otherDetails || []}
+              participants={participants}
+              onAddFlight={handleAddFlight}
+              onAddAccommodation={handleAddAccommodation}
+              onAddCar={handleAddCar}
+              onAddOther={handleAddOther}
+              onRemoveFlight={handleRemoveFlight}
+              onRemoveAccommodation={handleRemoveAccommodation}
+              onRemoveCar={handleRemoveCar}
+              onRemoveOther={handleRemoveOther}
+              onUpdateFlight={handleUpdateFlight}
+              onUpdateAccommodation={handleUpdateAccommodation}
+              onUpdateCar={handleUpdateCar}
+              onUpdateOther={handleUpdateOther}
             />
-            <Button variant="outline" size="sm" onClick={handleAddParticipant} disabled={!newParticipant.trim()}>
-              +
-            </Button>
-          </div>
-        </div>
 
-        {/* Expense summary card */}
-        <div className="mb-6">
-          <TripExpenseSummaryCard trip={trip} onClick={() => navigate(`/trip/${trip.id}/expenses`)} />
-        </div>
+            <div className="space-y-3">
+              {trip.days.map((day) => (
+                <DayOverviewCard
+                  key={day.id}
+                  day={day}
+                  tripId={trip.id}
+                  onUpdateTitle={handleUpdateDayTitle}
+                  onClick={() => navigate(`/trip/${trip.id}/day/${day.id}`)}
+                />
+              ))}
+            </div>
+          </TabsContent>
 
-        <TripDetails
-          flights={trip.flights || []}
-          accommodations={trip.accommodations || []}
-          rentalCars={trip.rentalCars || []}
-          otherDetails={trip.otherDetails || []}
-          participants={participants}
-          onAddFlight={handleAddFlight}
-          onAddAccommodation={handleAddAccommodation}
-          onAddCar={handleAddCar}
-          onAddOther={handleAddOther}
-          onRemoveFlight={handleRemoveFlight}
-          onRemoveAccommodation={handleRemoveAccommodation}
-          onRemoveCar={handleRemoveCar}
-          onRemoveOther={handleRemoveOther}
-          onUpdateFlight={handleUpdateFlight}
-          onUpdateAccommodation={handleUpdateAccommodation}
-          onUpdateCar={handleUpdateCar}
-          onUpdateOther={handleUpdateOther}
-        />
-
-        <div className="space-y-3">
-          {trip.days.map((day) => (
-            <DayOverviewCard
-              key={day.id}
-              day={day}
-              tripId={trip.id}
-              onUpdateTitle={handleUpdateDayTitle}
-              onClick={() => navigate(`/trip/${trip.id}/day/${day.id}`)}
+          <TabsContent value="today">
+            <TodayView
+              trip={trip}
+              onUpdateActivity={(dayId, activity) => {
+                updateTrip({
+                  ...trip,
+                  days: trip.days.map((d) =>
+                    d.id === dayId
+                      ? { ...d, activities: d.activities.map((a) => (a.id === activity.id ? activity : a)) }
+                      : d
+                  ),
+                });
+              }}
+              onDeleteActivity={(dayId, activityId) => {
+                updateTrip({
+                  ...trip,
+                  days: trip.days.map((d) =>
+                    d.id === dayId
+                      ? { ...d, activities: d.activities.filter((a) => a.id !== activityId) }
+                      : d
+                  ),
+                });
+              }}
             />
-          ))}
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
