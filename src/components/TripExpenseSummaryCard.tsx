@@ -1,5 +1,6 @@
 import { Trip } from "@/types/trip";
 import { Receipt, ChevronRight } from "lucide-react";
+import { calculateTripTotals } from "@/lib/expenseUtils";
 
 interface Props {
   trip: Trip;
@@ -52,9 +53,21 @@ export function TripExpenseSummaryCard({ trip, onClick }: Props) {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-base font-bold text-foreground">{totalCost.toFixed(2)}€</span>
-          <ChevronRight size={16} className="text-muted-foreground/40" />
+        <div className="flex flex-col items-end gap-0.5">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-bold text-foreground">{totalCost.toFixed(2)}€</span>
+            <ChevronRight size={16} className="text-muted-foreground/40" />
+          </div>
+          {(() => {
+            const t = calculateTripTotals(trip);
+            return t.pending > 0.01 ? (
+              <p className="text-[11px] text-muted-foreground">
+                <span className="text-success">{t.paid.toFixed(2)}€</span>
+                {" • "}
+                <span className="text-warning">{t.pending.toFixed(2)}€ pend.</span>
+              </p>
+            ) : null;
+          })()}
         </div>
       </div>
     </button>

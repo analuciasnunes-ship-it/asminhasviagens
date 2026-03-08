@@ -47,6 +47,45 @@ export function getPaymentStatus(
   return { paid, remaining: totalAmount - paid, hasPlan: true };
 }
 
+/**
+ * Calculates trip-wide paid and pending totals across all expense types.
+ */
+export function calculateTripTotals(trip: Trip): { total: number; paid: number; pending: number } {
+  let total = 0;
+  let paid = 0;
+
+  const processItem = (amount: number, ep?: ExpensePayment[]) => {
+    total += amount;
+    paid += getEffectivePaidAmount(amount, ep);
+  };
+
+  for (const day of trip.days) {
+    for (const m of day.meals || []) processItem(m.totalBill, m.expensePayments);
+    for (const e of day.expenses || []) processItem(e.amount, e.expensePayments);
+    for (const a of day.activities || []) {
+      if (a.cost) processItem(a.cost, a.expensePayments);
+    }
+  }
+
+  const detailItems = [
+    ...(trip.flights || []),
+    ...(trip.accommodations || []),
+    ...(trip.rentalCars || []),
+    ...(trip.otherDetails || []),
+    ...trip.days.flatMap((d) => [
+      ...(d.flights || []),
+      ...(d.accommodations || []),
+      ...(d.rentalCars || []),
+      ...(d.otherDetails || []),
+    ]),
+  ];
+  for (const item of detailItems) {
+    if (item.price) processItem(item.price, item.expensePayments);
+  }
+
+  return { total, paid, pending: total - paid };
+}
+
 export function calculateBalances(trip: Trip): Balance[] {
   const participants = trip.participants || [];
   if (participants.length === 0) return [];

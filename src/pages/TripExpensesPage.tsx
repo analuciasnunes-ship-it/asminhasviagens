@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTrips } from "@/hooks/useTrips";
 import { ArrowLeft, Wallet, ArrowRight, Trash2, Pencil, Plane, Home, UtensilsCrossed, MapPin, ShoppingCart, Receipt, PieChart } from "lucide-react";
 import { Trip, Payment } from "@/types/trip";
-import { calculateBalances, calculateSettlements } from "@/lib/expenseUtils";
+import { calculateBalances, calculateSettlements, calculateTripTotals } from "@/lib/expenseUtils";
 import { AddPaymentDialog } from "@/components/AddPaymentDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useState, useMemo } from "react";
@@ -114,6 +114,7 @@ const TripExpensesPage = () => {
   const participants = trip.participants || [];
   const categories = useExpenseCategories(trip);
   const grandTotal = categories.reduce((s, c) => s + c.value, 0);
+  const tripTotals = calculateTripTotals(trip);
   const balances = calculateBalances(trip);
   const settlements = calculateSettlements(balances);
   const payments = trip.payments || [];
@@ -158,10 +159,21 @@ const TripExpensesPage = () => {
           <h1 className="text-2xl font-bold text-foreground">Despesas da viagem</h1>
           <p className="text-sm text-muted-foreground mt-1">{trip.destination}</p>
           {grandTotal > 0 && (
-            <div className="mt-3 inline-flex items-center bg-secondary px-3 py-1.5 rounded-full">
-              <span className="text-sm font-semibold text-foreground">
-                Total: {grandTotal.toFixed(2)}€
-              </span>
+            <div className="mt-3 space-y-1.5">
+              <div className="inline-flex items-center bg-secondary px-3 py-1.5 rounded-full">
+                <span className="text-sm font-semibold text-foreground">
+                  Total: {tripTotals.total.toFixed(2)}€
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground px-1">
+                <span className="text-success font-medium">{tripTotals.paid.toFixed(2)}€ pago</span>
+                {tripTotals.pending > 0.01 && (
+                  <>
+                    <span>•</span>
+                    <span className="text-warning font-medium">{tripTotals.pending.toFixed(2)}€ pendente</span>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </header>
