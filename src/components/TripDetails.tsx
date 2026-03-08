@@ -208,8 +208,9 @@ export function TripDetails({
       price: otherDraft.price ? parseFloat(otherDraft.price) : undefined,
       paidBy: otherDraft.paidBy || undefined,
       sharedBy: otherDraft.sharedBy.length > 0 ? otherDraft.sharedBy : undefined,
+      expensePayments: otherDraft.expensePayments.length > 0 ? otherDraft.expensePayments : undefined,
     });
-    setOtherDraft({ description: "", notes: "", price: "", paidBy: "", sharedBy: [] });
+    setOtherDraft({ description: "", notes: "", price: "", paidBy: "", sharedBy: [], expensePayments: [] });
     setActiveForm(null);
   };
 
