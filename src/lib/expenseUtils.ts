@@ -1,4 +1,4 @@
-import { Trip, Participant } from "@/types/trip";
+import { Trip, Participant, ExpensePayment } from "@/types/trip";
 
 export interface Balance {
   participantId: string;
@@ -16,6 +16,37 @@ export interface Settlement {
   amount: number;
 }
 
+/**
+ * Returns the effectively paid amount for an item.
+ * If the item has expensePayments, only sum "paid" ones.
+ * If no expensePayments, treat as fully paid (backward compat).
+ */
+export function getEffectivePaidAmount(
+  totalAmount: number,
+  expensePayments?: ExpensePayment[]
+): number {
+  if (!expensePayments || expensePayments.length === 0) return totalAmount;
+  return expensePayments
+    .filter((p) => p.status === "paid")
+    .reduce((sum, p) => sum + p.amount, 0);
+}
+
+/**
+ * Returns { paid, remaining } for display purposes.
+ */
+export function getPaymentStatus(
+  totalAmount: number,
+  expensePayments?: ExpensePayment[]
+): { paid: number; remaining: number; hasPlan: boolean } {
+  if (!expensePayments || expensePayments.length === 0) {
+    return { paid: totalAmount, remaining: 0, hasPlan: false };
+  }
+  const paid = expensePayments
+    .filter((p) => p.status === "paid")
+    .reduce((sum, p) => sum + p.amount, 0);
+  return { paid, remaining: totalAmount - paid, hasPlan: true };
+}
+
 export function calculateBalances(trip: Trip): Balance[] {
   const participants = trip.participants || [];
   if (participants.length === 0) return [];
@@ -27,30 +58,46 @@ export function calculateBalances(trip: Trip): Balance[] {
     owed[p.id] = 0;
   });
 
+  // Helper: process an item with potential partial payments
+  const processItem = (
+    totalAmount: number,
+    paidBy: string,
+    sharedBy: string[],
+    expensePayments?: ExpensePayment[]
+  ) => {
+    const effectiveAmount = getEffectivePaidAmount(totalAmount, expensePayments);
+
+    if (expensePayments && expensePayments.length > 0) {
+      // With partial payments, each payment's paidBy is credited
+      for (const ep of expensePayments) {
+        if (ep.status === "paid" && paid[ep.paidBy] !== undefined) {
+          paid[ep.paidBy] += ep.amount;
+        }
+      }
+    } else {
+      // Legacy: single payer for full amount
+      if (paid[paidBy] !== undefined) paid[paidBy] += totalAmount;
+    }
+
+    // Only owe the effectively paid portion
+    const share = effectiveAmount / (sharedBy.length || 1);
+    for (const pid of sharedBy) {
+      if (owed[pid] !== undefined) owed[pid] += share;
+    }
+  };
+
   // Gather all meals, expenses, and activity expenses from all days
   for (const day of trip.days) {
     for (const meal of day.meals || []) {
-      if (paid[meal.paidBy] !== undefined) paid[meal.paidBy] += meal.totalBill;
-      const share = meal.totalBill / (meal.sharedBy.length || 1);
-      for (const pid of meal.sharedBy) {
-        if (owed[pid] !== undefined) owed[pid] += share;
-      }
+      processItem(meal.totalBill, meal.paidBy, meal.sharedBy, meal.expensePayments);
     }
     for (const exp of day.expenses || []) {
-      if (paid[exp.paidBy] !== undefined) paid[exp.paidBy] += exp.amount;
-      const share = exp.amount / (exp.sharedBy.length || 1);
-      for (const pid of exp.sharedBy) {
-        if (owed[pid] !== undefined) owed[pid] += share;
-      }
+      processItem(exp.amount, exp.paidBy, exp.sharedBy, exp.expensePayments);
     }
     // Activity expenses with splitting
     for (const act of day.activities || []) {
       if (act.cost && act.paidBy && act.sharedBy && act.sharedBy.length > 0) {
-        if (paid[act.paidBy] !== undefined) paid[act.paidBy] += act.cost;
-        const share = act.cost / act.sharedBy.length;
-        for (const pid of act.sharedBy) {
-          if (owed[pid] !== undefined) owed[pid] += share;
-        }
+        processItem(act.cost, act.paidBy, act.sharedBy, act.expensePayments);
       }
     }
   }
@@ -72,15 +119,11 @@ export function calculateBalances(trip: Trip): Balance[] {
   }
   for (const item of detailItems) {
     if (item.price && item.paidBy && item.sharedBy && item.sharedBy.length > 0) {
-      if (paid[item.paidBy] !== undefined) paid[item.paidBy] += item.price;
-      const share = item.price / item.sharedBy.length;
-      for (const pid of item.sharedBy) {
-        if (owed[pid] !== undefined) owed[pid] += share;
-      }
+      processItem(item.price, item.paidBy, item.sharedBy, item.expensePayments);
     }
   }
 
-  // Factor in payments
+  // Factor in payments (trip-level settlement payments)
   for (const payment of trip.payments || []) {
     if (paid[payment.from] !== undefined) paid[payment.from] += payment.amount;
     if (owed[payment.to] !== undefined) owed[payment.to] += payment.amount;
