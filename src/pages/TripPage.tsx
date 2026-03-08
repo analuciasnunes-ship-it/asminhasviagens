@@ -77,6 +77,10 @@ const TripPage = () => {
   const handleRemoveAccommodation = (aid: string) => updateTrip({ ...trip, accommodations: (trip.accommodations || []).filter((x) => x.id !== aid) });
   const handleRemoveCar = (cid: string) => updateTrip({ ...trip, rentalCars: (trip.rentalCars || []).filter((x) => x.id !== cid) });
   const handleRemoveOther = (oid: string) => updateTrip({ ...trip, otherDetails: (trip.otherDetails || []).filter((x) => x.id !== oid) });
+  const handleUpdateFlight = (f: Flight) => updateTrip({ ...trip, flights: (trip.flights || []).map((x) => x.id === f.id ? f : x) });
+  const handleUpdateAccommodation = (a: Accommodation) => updateTrip({ ...trip, accommodations: (trip.accommodations || []).map((x) => x.id === a.id ? a : x) });
+  const handleUpdateCar = (c: RentalCar) => updateTrip({ ...trip, rentalCars: (trip.rentalCars || []).map((x) => x.id === c.id ? c : x) });
+  const handleUpdateOther = (o: OtherDetail) => updateTrip({ ...trip, otherDetails: (trip.otherDetails || []).map((x) => x.id === o.id ? o : x) });
 
   return (
     <div className="min-h-screen bg-background">
