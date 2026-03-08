@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Flight, Accommodation, RentalCar, OtherDetail, Participant, ExpensePayment } from "@/types/trip";
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
 import { PaymentStatusBadge } from "./ExpensePaymentsList";
-import { Plane, Hotel, Car, Package, Plus, Trash2, ArrowLeftRight, ArrowRight } from "lucide-react";
+import { Plane, Hotel, Car, Package, Plus, Trash2, ArrowLeftRight, ArrowRight, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,10 @@ interface Props {
   onRemoveAccommodation: (id: string) => void;
   onRemoveCar: (id: string) => void;
   onRemoveOther?: (id: string) => void;
+  onUpdateFlight?: (f: Flight) => void;
+  onUpdateAccommodation?: (a: Accommodation) => void;
+  onUpdateCar?: (c: RentalCar) => void;
+  onUpdateOther?: (o: OtherDetail) => void;
   compact?: boolean;
 }
 
@@ -114,6 +118,7 @@ export function TripDetails({
   participants = [],
   onAddFlight, onAddAccommodation, onAddCar, onAddOther,
   onRemoveFlight, onRemoveAccommodation, onRemoveCar, onRemoveOther,
+  onUpdateFlight, onUpdateAccommodation, onUpdateCar, onUpdateOther,
   compact = false,
 }: Props) {
   const [activeForm, setActiveForm] = useState<FormType>(null);
@@ -123,6 +128,9 @@ export function TripDetails({
   const [accDraft, setAccDraft] = useState({ placeName: "", address: "", checkIn: "", checkOut: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] });
   const [carDraft, setCarDraft] = useState({ company: "", pickupDate: "", dropoffDate: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] });
   const [otherDraft, setOtherDraft] = useState({ description: "", notes: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] });
+
+  // Edit state: stores the id of the item being edited
+  const [editId, setEditId] = useState<string | null>(null);
 
   const hasItems = flights.length > 0 || accommodations.length > 0 || rentalCars.length > 0 || otherDetails.length > 0;
 
@@ -135,14 +143,84 @@ export function TripDetails({
   const resetFlightForm = () => {
     setActiveForm(null);
     setFlightMode(null);
+    setEditId(null);
     setRtDraft({ ...emptyRoundtrip, sharedBy: [] });
     setOwDraft({ ...emptyOneway, sharedBy: [] });
   };
 
+  const resetAllForms = () => {
+    resetFlightForm();
+    setAccDraft({ placeName: "", address: "", checkIn: "", checkOut: "", price: "", paidBy: "", sharedBy: [], expensePayments: [] });
+    setCarDraft({ company: "", pickupDate: "", dropoffDate: "", price: "", paidBy: "", sharedBy: [], expensePayments: [] });
+    setOtherDraft({ description: "", notes: "", price: "", paidBy: "", sharedBy: [], expensePayments: [] });
+    setEditId(null);
+    setActiveForm(null);
+  };
+
+  // Edit handlers - pre-fill drafts
+  const startEditFlight = (f: Flight) => {
+    resetAllForms();
+    setEditId(f.id);
+    setActiveForm("flight");
+    if (f.type === "roundtrip") {
+      setFlightMode("roundtrip");
+      setRtDraft({
+        origin: f.origin, destination: f.destination,
+        departureTime: f.departureTime || "", arrivalTime: f.arrivalTime || "",
+        returnDepartureTime: f.returnDepartureTime || "", returnArrivalTime: f.returnArrivalTime || "",
+        price: f.price != null ? f.price.toString() : "", paidBy: f.paidBy || "",
+        sharedBy: f.sharedBy || [], expensePayments: f.expensePayments || [],
+      });
+    } else {
+      setFlightMode("oneway");
+      setOwDraft({
+        origin: f.origin, destination: f.destination,
+        flightNumber: f.flightNumber || "",
+        departureTime: f.departureTime || "", arrivalTime: f.arrivalTime || "",
+        price: f.price != null ? f.price.toString() : "", paidBy: f.paidBy || "",
+        sharedBy: f.sharedBy || [], expensePayments: f.expensePayments || [],
+      });
+    }
+  };
+
+  const startEditAccommodation = (a: Accommodation) => {
+    resetAllForms();
+    setEditId(a.id);
+    setActiveForm("accommodation");
+    setAccDraft({
+      placeName: a.placeName, address: a.address || "",
+      checkIn: a.checkIn, checkOut: a.checkOut,
+      price: a.price != null ? a.price.toString() : "", paidBy: a.paidBy || "",
+      sharedBy: a.sharedBy || [], expensePayments: a.expensePayments || [],
+    });
+  };
+
+  const startEditCar = (c: RentalCar) => {
+    resetAllForms();
+    setEditId(c.id);
+    setActiveForm("car");
+    setCarDraft({
+      company: c.company, pickupDate: c.pickupDate, dropoffDate: c.dropoffDate,
+      price: c.price != null ? c.price.toString() : "", paidBy: c.paidBy || "",
+      sharedBy: c.sharedBy || [], expensePayments: c.expensePayments || [],
+    });
+  };
+
+  const startEditOther = (o: OtherDetail) => {
+    resetAllForms();
+    setEditId(o.id);
+    setActiveForm("other");
+    setOtherDraft({
+      description: o.description, notes: o.notes || "",
+      price: o.price != null ? o.price.toString() : "", paidBy: o.paidBy || "",
+      sharedBy: o.sharedBy || [], expensePayments: o.expensePayments || [],
+    });
+  };
+
   const addRoundtrip = () => {
     if (!rtDraft.origin || !rtDraft.destination) return;
-    onAddFlight({
-      id: crypto.randomUUID(), type: "roundtrip",
+    const flight: Flight = {
+      id: editId || crypto.randomUUID(), type: "roundtrip",
       origin: rtDraft.origin, destination: rtDraft.destination,
       departureTime: rtDraft.departureTime || undefined,
       arrivalTime: rtDraft.arrivalTime || undefined,
@@ -152,14 +230,19 @@ export function TripDetails({
       paidBy: rtDraft.paidBy || undefined,
       sharedBy: rtDraft.sharedBy.length > 0 ? rtDraft.sharedBy : undefined,
       expensePayments: rtDraft.expensePayments.length > 0 ? rtDraft.expensePayments : undefined,
-    });
+    };
+    if (editId && onUpdateFlight) {
+      onUpdateFlight(flight);
+    } else {
+      onAddFlight(flight);
+    }
     resetFlightForm();
   };
 
   const addOneway = () => {
     if (!owDraft.origin || !owDraft.destination) return;
-    onAddFlight({
-      id: crypto.randomUUID(), type: "oneway",
+    const flight: Flight = {
+      id: editId || crypto.randomUUID(), type: "oneway",
       origin: owDraft.origin, destination: owDraft.destination,
       flightNumber: owDraft.flightNumber || undefined,
       departureTime: owDraft.departureTime || undefined,
@@ -168,51 +251,78 @@ export function TripDetails({
       paidBy: owDraft.paidBy || undefined,
       sharedBy: owDraft.sharedBy.length > 0 ? owDraft.sharedBy : undefined,
       expensePayments: owDraft.expensePayments.length > 0 ? owDraft.expensePayments : undefined,
-    });
+    };
+    if (editId && onUpdateFlight) {
+      onUpdateFlight(flight);
+    } else {
+      onAddFlight(flight);
+    }
     resetFlightForm();
   };
 
   const addAccommodation = () => {
     if (!accDraft.placeName || !accDraft.checkIn || !accDraft.checkOut) return;
-    onAddAccommodation({
-      id: crypto.randomUUID(), placeName: accDraft.placeName, address: accDraft.address || undefined,
+    const acc: Accommodation = {
+      id: editId || crypto.randomUUID(), placeName: accDraft.placeName, address: accDraft.address || undefined,
       checkIn: accDraft.checkIn, checkOut: accDraft.checkOut,
       price: accDraft.price ? parseFloat(accDraft.price) : undefined,
       paidBy: accDraft.paidBy || undefined,
       sharedBy: accDraft.sharedBy.length > 0 ? accDraft.sharedBy : undefined,
       expensePayments: accDraft.expensePayments.length > 0 ? accDraft.expensePayments : undefined,
-    });
+    };
+    if (editId && onUpdateAccommodation) {
+      onUpdateAccommodation(acc);
+    } else {
+      onAddAccommodation(acc);
+    }
     setAccDraft({ placeName: "", address: "", checkIn: "", checkOut: "", price: "", paidBy: "", sharedBy: [], expensePayments: [] });
+    setEditId(null);
     setActiveForm(null);
   };
 
   const addCar = () => {
     if (!carDraft.company || !carDraft.pickupDate || !carDraft.dropoffDate) return;
-    onAddCar({
-      id: crypto.randomUUID(), company: carDraft.company,
+    const car: RentalCar = {
+      id: editId || crypto.randomUUID(), company: carDraft.company,
       pickupDate: carDraft.pickupDate, dropoffDate: carDraft.dropoffDate,
       price: carDraft.price ? parseFloat(carDraft.price) : undefined,
       paidBy: carDraft.paidBy || undefined,
       sharedBy: carDraft.sharedBy.length > 0 ? carDraft.sharedBy : undefined,
       expensePayments: carDraft.expensePayments.length > 0 ? carDraft.expensePayments : undefined,
-    });
+    };
+    if (editId && onUpdateCar) {
+      onUpdateCar(car);
+    } else {
+      onAddCar(car);
+    }
     setCarDraft({ company: "", pickupDate: "", dropoffDate: "", price: "", paidBy: "", sharedBy: [], expensePayments: [] });
+    setEditId(null);
     setActiveForm(null);
   };
 
   const addOther = () => {
     if (!otherDraft.description) return;
-    onAddOther?.({
-      id: crypto.randomUUID(), description: otherDraft.description,
+    const other: OtherDetail = {
+      id: editId || crypto.randomUUID(), description: otherDraft.description,
       notes: otherDraft.notes || undefined,
       price: otherDraft.price ? parseFloat(otherDraft.price) : undefined,
       paidBy: otherDraft.paidBy || undefined,
       sharedBy: otherDraft.sharedBy.length > 0 ? otherDraft.sharedBy : undefined,
       expensePayments: otherDraft.expensePayments.length > 0 ? otherDraft.expensePayments : undefined,
-    });
+    };
+    if (editId && onUpdateOther) {
+      onUpdateOther(other);
+    } else {
+      onAddOther?.(other);
+    }
     setOtherDraft({ description: "", notes: "", price: "", paidBy: "", sharedBy: [], expensePayments: [] });
+    setEditId(null);
     setActiveForm(null);
   };
+
+  const isEditing = !!editId;
+  const formTitle = (type: string) => isEditing ? `Editar ${type}` : `Novo ${type}`;
+  const submitLabel = isEditing ? "Guardar" : "Adicionar";
 
   const addButton = (
     <DropdownMenu>
@@ -222,16 +332,16 @@ export function TripDetails({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        <DropdownMenuItem onClick={() => { setActiveForm("flight"); }}>
+        <DropdownMenuItem onClick={() => { resetAllForms(); setActiveForm("flight"); }}>
           <Plane size={14} className="mr-2" /> Voo
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => { setActiveForm("accommodation"); setAccDraft((d) => ({ ...d, sharedBy: initSharedBy() })); }}>
+        <DropdownMenuItem onClick={() => { resetAllForms(); setActiveForm("accommodation"); setAccDraft((d) => ({ ...d, sharedBy: initSharedBy() })); }}>
           <Hotel size={14} className="mr-2" /> Alojamento
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => { setActiveForm("car"); setCarDraft((d) => ({ ...d, sharedBy: initSharedBy() })); }}>
+        <DropdownMenuItem onClick={() => { resetAllForms(); setActiveForm("car"); setCarDraft((d) => ({ ...d, sharedBy: initSharedBy() })); }}>
           <Car size={14} className="mr-2" /> Aluguer de carro
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => { setActiveForm("other"); setOtherDraft((d) => ({ ...d, sharedBy: initSharedBy() })); }}>
+        <DropdownMenuItem onClick={() => { resetAllForms(); setActiveForm("other"); setOtherDraft((d) => ({ ...d, sharedBy: initSharedBy() })); }}>
           <Package size={14} className="mr-2" /> Outro
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -243,9 +353,12 @@ export function TripDetails({
   }
 
   const renderFlightCard = (f: Flight) => {
+    // Don't show card if it's being edited
+    if (editId === f.id) return null;
+
     if (f.type === "roundtrip") {
       return (
-        <div key={f.id} className="rounded-2xl border border-border bg-card p-3 space-y-2">
+        <div key={f.id} className="rounded-2xl border border-border bg-card p-3 space-y-2 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => startEditFlight(f)}>
           <div className="flex items-start gap-3">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0 mt-0.5">
               <ArrowLeftRight size={14} className="text-primary" />
@@ -272,16 +385,21 @@ export function TripDetails({
                 <PaymentStatusBadge totalAmount={f.price} payments={f.expensePayments} />
               )}
             </div>
-            <button onClick={() => onRemoveFlight(f.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors mt-1">
-              <Trash2 size={14} />
-            </button>
+            <div className="flex items-center gap-1 mt-1">
+              <button onClick={(e) => { e.stopPropagation(); startEditFlight(f); }} className="text-muted-foreground/40 hover:text-primary transition-colors">
+                <Pencil size={14} />
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); onRemoveFlight(f.id); }} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+                <Trash2 size={14} />
+              </button>
+            </div>
           </div>
         </div>
       );
     }
 
     return (
-      <div key={f.id} className="rounded-2xl border border-border bg-card p-3">
+      <div key={f.id} className="rounded-2xl border border-border bg-card p-3 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => startEditFlight(f)}>
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
             <ArrowRight size={14} className="text-primary" />
@@ -300,9 +418,14 @@ export function TripDetails({
               <PaymentStatusBadge totalAmount={f.price} payments={f.expensePayments} />
             )}
           </div>
-          <button onClick={() => onRemoveFlight(f.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
-            <Trash2 size={14} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button onClick={(e) => { e.stopPropagation(); startEditFlight(f); }} className="text-muted-foreground/40 hover:text-primary transition-colors">
+              <Pencil size={14} />
+            </button>
+            <button onClick={(e) => { e.stopPropagation(); onRemoveFlight(f.id); }} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+              <Trash2 size={14} />
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -320,73 +443,94 @@ export function TripDetails({
       {flights.map(renderFlightCard)}
 
       {accommodations.map((a) => (
-        <div key={a.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
-            <Hotel size={14} className="text-primary" />
+        editId === a.id ? null : (
+          <div key={a.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => startEditAccommodation(a)}>
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
+              <Hotel size={14} className="text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-foreground truncate">
+                {a.placeName}
+                {a.price != null && <span className="text-muted-foreground font-normal"> — {a.price.toFixed(2)}€</span>}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {formatDate(a.checkIn)} – {formatDate(a.checkOut)}{a.address && ` · ${a.address}`}
+              </p>
+              <SplitInfo participants={participants} paidBy={a.paidBy} sharedBy={a.sharedBy} price={a.price} />
+              {a.price && a.expensePayments && a.expensePayments.length > 0 && (
+                <PaymentStatusBadge totalAmount={a.price} payments={a.expensePayments} />
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <button onClick={(e) => { e.stopPropagation(); startEditAccommodation(a); }} className="text-muted-foreground/40 hover:text-primary transition-colors">
+                <Pencil size={14} />
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); onRemoveAccommodation(a.id); }} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+                <Trash2 size={14} />
+              </button>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-foreground truncate">
-              {a.placeName}
-              {a.price != null && <span className="text-muted-foreground font-normal"> — {a.price.toFixed(2)}€</span>}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {formatDate(a.checkIn)} – {formatDate(a.checkOut)}{a.address && ` · ${a.address}`}
-            </p>
-            <SplitInfo participants={participants} paidBy={a.paidBy} sharedBy={a.sharedBy} price={a.price} />
-            {a.price && a.expensePayments && a.expensePayments.length > 0 && (
-              <PaymentStatusBadge totalAmount={a.price} payments={a.expensePayments} />
-            )}
-          </div>
-          <button onClick={() => onRemoveAccommodation(a.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
-            <Trash2 size={14} />
-          </button>
-        </div>
+        )
       ))}
 
       {rentalCars.map((c) => (
-        <div key={c.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
-            <Car size={14} className="text-primary" />
+        editId === c.id ? null : (
+          <div key={c.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => startEditCar(c)}>
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
+              <Car size={14} className="text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-foreground truncate">
+                {c.company}
+                {c.price != null && <span className="text-muted-foreground font-normal"> — {c.price.toFixed(2)}€</span>}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {formatDate(c.pickupDate)} – {formatDate(c.dropoffDate)}
+              </p>
+              <SplitInfo participants={participants} paidBy={c.paidBy} sharedBy={c.sharedBy} price={c.price} />
+              {c.price && c.expensePayments && c.expensePayments.length > 0 && (
+                <PaymentStatusBadge totalAmount={c.price} payments={c.expensePayments} />
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <button onClick={(e) => { e.stopPropagation(); startEditCar(c); }} className="text-muted-foreground/40 hover:text-primary transition-colors">
+                <Pencil size={14} />
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); onRemoveCar(c.id); }} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+                <Trash2 size={14} />
+              </button>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-foreground truncate">
-              {c.company}
-              {c.price != null && <span className="text-muted-foreground font-normal"> — {c.price.toFixed(2)}€</span>}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {formatDate(c.pickupDate)} – {formatDate(c.dropoffDate)}
-            </p>
-            <SplitInfo participants={participants} paidBy={c.paidBy} sharedBy={c.sharedBy} price={c.price} />
-            {c.price && c.expensePayments && c.expensePayments.length > 0 && (
-              <PaymentStatusBadge totalAmount={c.price} payments={c.expensePayments} />
-            )}
-          </div>
-          <button onClick={() => onRemoveCar(c.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
-            <Trash2 size={14} />
-          </button>
-        </div>
+        )
       ))}
 
       {otherDetails.map((o) => (
-        <div key={o.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
-            <Package size={14} className="text-primary" />
+        editId === o.id ? null : (
+          <div key={o.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => startEditOther(o)}>
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
+              <Package size={14} className="text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-foreground truncate">
+                {o.description}
+                {o.price != null && <span className="text-muted-foreground font-normal"> — {o.price.toFixed(2)}€</span>}
+              </p>
+              {o.notes && <p className="text-xs text-muted-foreground italic">{o.notes}</p>}
+              <SplitInfo participants={participants} paidBy={o.paidBy} sharedBy={o.sharedBy} price={o.price} />
+              {o.price && o.expensePayments && o.expensePayments.length > 0 && (
+                <PaymentStatusBadge totalAmount={o.price} payments={o.expensePayments} />
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <button onClick={(e) => { e.stopPropagation(); startEditOther(o); }} className="text-muted-foreground/40 hover:text-primary transition-colors">
+                <Pencil size={14} />
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); onRemoveOther?.(o.id); }} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+                <Trash2 size={14} />
+              </button>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-foreground truncate">
-              {o.description}
-              {o.price != null && <span className="text-muted-foreground font-normal"> — {o.price.toFixed(2)}€</span>}
-            </p>
-            {o.notes && <p className="text-xs text-muted-foreground italic">{o.notes}</p>}
-            <SplitInfo participants={participants} paidBy={o.paidBy} sharedBy={o.sharedBy} price={o.price} />
-            {o.price && o.expensePayments && o.expensePayments.length > 0 && (
-              <PaymentStatusBadge totalAmount={o.price} payments={o.expensePayments} />
-            )}
-          </div>
-          <button onClick={() => onRemoveOther?.(o.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
-            <Trash2 size={14} />
-          </button>
-        </div>
+        )
       ))}
 
       {/* Flight form */}
@@ -394,17 +538,17 @@ export function TripDetails({
         <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-1">
             <Plane size={14} className="text-primary" />
-            <span className="text-sm font-semibold text-foreground">Novo voo</span>
+            <span className="text-sm font-semibold text-foreground">{formTitle("voo")}</span>
           </div>
 
           {!flightMode && (
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">Que tipo de voo pretende adicionar?</p>
               <div className="grid grid-cols-2 gap-2">
-                <Button size="sm" variant="outline" className="h-10 text-xs flex flex-col gap-0.5" onClick={() => { setFlightMode("roundtrip"); setRtDraft((d) => ({ ...d, sharedBy: initSharedBy() })); }}>
+                <Button size="sm" variant="outline" className="h-10 text-xs flex flex-col gap-0.5" onClick={() => { setFlightMode("roundtrip"); setRtDraft((d) => ({ ...d, sharedBy: d.sharedBy.length > 0 ? d.sharedBy : initSharedBy() })); }}>
                   <ArrowLeftRight size={14} /> Ida e volta
                 </Button>
-                <Button size="sm" variant="outline" className="h-10 text-xs flex flex-col gap-0.5" onClick={() => { setFlightMode("oneway"); setOwDraft((d) => ({ ...d, sharedBy: initSharedBy() })); }}>
+                <Button size="sm" variant="outline" className="h-10 text-xs flex flex-col gap-0.5" onClick={() => { setFlightMode("oneway"); setOwDraft((d) => ({ ...d, sharedBy: d.sharedBy.length > 0 ? d.sharedBy : initSharedBy() })); }}>
                   <ArrowRight size={14} /> Voos separados
                 </Button>
               </div>
@@ -448,7 +592,7 @@ export function TripDetails({
                 </div>
               )}
               <div className="flex gap-2 pt-1">
-                <Button size="sm" className="flex-1 h-8 text-xs" onClick={addRoundtrip} disabled={!rtDraft.origin || !rtDraft.destination}>Adicionar</Button>
+                <Button size="sm" className="flex-1 h-8 text-xs" onClick={addRoundtrip} disabled={!rtDraft.origin || !rtDraft.destination}>{submitLabel}</Button>
                 <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={resetFlightForm}>Cancelar</Button>
               </div>
             </div>
@@ -485,7 +629,7 @@ export function TripDetails({
                 </div>
               )}
               <div className="flex gap-2 pt-1">
-                <Button size="sm" className="flex-1 h-8 text-xs" onClick={addOneway} disabled={!owDraft.origin || !owDraft.destination}>Adicionar</Button>
+                <Button size="sm" className="flex-1 h-8 text-xs" onClick={addOneway} disabled={!owDraft.origin || !owDraft.destination}>{submitLabel}</Button>
                 <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={resetFlightForm}>Cancelar</Button>
               </div>
             </div>
@@ -498,7 +642,7 @@ export function TripDetails({
         <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Hotel size={14} className="text-primary" />
-            <span className="text-sm font-semibold text-foreground">Novo alojamento</span>
+            <span className="text-sm font-semibold text-foreground">{formTitle("alojamento")}</span>
           </div>
           <div className="space-y-1"><Label className="text-xs">Nome *</Label><Input className="h-8 text-sm" placeholder="Hotel / Airbnb..." value={accDraft.placeName} onChange={(e) => setAccDraft({ ...accDraft, placeName: e.target.value })} /></div>
           <div className="space-y-1"><Label className="text-xs">Morada</Label><Input className="h-8 text-sm" placeholder="Rua..." value={accDraft.address} onChange={(e) => setAccDraft({ ...accDraft, address: e.target.value })} /></div>
@@ -526,8 +670,8 @@ export function TripDetails({
             </div>
           )}
           <div className="flex gap-2 pt-1">
-            <Button size="sm" className="flex-1 h-8 text-xs" onClick={addAccommodation} disabled={!accDraft.placeName || !accDraft.checkIn || !accDraft.checkOut}>Adicionar</Button>
-            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setActiveForm(null)}>Cancelar</Button>
+            <Button size="sm" className="flex-1 h-8 text-xs" onClick={addAccommodation} disabled={!accDraft.placeName || !accDraft.checkIn || !accDraft.checkOut}>{submitLabel}</Button>
+            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={resetAllForms}>Cancelar</Button>
           </div>
         </div>
       )}
@@ -537,7 +681,7 @@ export function TripDetails({
         <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Car size={14} className="text-primary" />
-            <span className="text-sm font-semibold text-foreground">Aluguer de carro</span>
+            <span className="text-sm font-semibold text-foreground">{formTitle("aluguer de carro")}</span>
           </div>
           <div className="space-y-1"><Label className="text-xs">Empresa *</Label><Input className="h-8 text-sm" placeholder="Europcar, Hertz..." value={carDraft.company} onChange={(e) => setCarDraft({ ...carDraft, company: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-2">
@@ -564,8 +708,8 @@ export function TripDetails({
             </div>
           )}
           <div className="flex gap-2 pt-1">
-            <Button size="sm" className="flex-1 h-8 text-xs" onClick={addCar} disabled={!carDraft.company || !carDraft.pickupDate || !carDraft.dropoffDate}>Adicionar</Button>
-            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setActiveForm(null)}>Cancelar</Button>
+            <Button size="sm" className="flex-1 h-8 text-xs" onClick={addCar} disabled={!carDraft.company || !carDraft.pickupDate || !carDraft.dropoffDate}>{submitLabel}</Button>
+            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={resetAllForms}>Cancelar</Button>
           </div>
         </div>
       )}
@@ -575,7 +719,7 @@ export function TripDetails({
         <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Package size={14} className="text-primary" />
-            <span className="text-sm font-semibold text-foreground">Outro detalhe</span>
+            <span className="text-sm font-semibold text-foreground">{formTitle("detalhe")}</span>
           </div>
           <div className="space-y-1"><Label className="text-xs">Descrição *</Label><Input className="h-8 text-sm" placeholder="Seguro, transfers..." value={otherDraft.description} onChange={(e) => setOtherDraft({ ...otherDraft, description: e.target.value })} /></div>
           <div className="space-y-1"><Label className="text-xs">Notas</Label><Textarea className="text-sm resize-none min-h-[50px]" placeholder="Notas..." value={otherDraft.notes} onChange={(e) => setOtherDraft({ ...otherDraft, notes: e.target.value })} /></div>
@@ -599,8 +743,8 @@ export function TripDetails({
             </div>
           )}
           <div className="flex gap-2 pt-1">
-            <Button size="sm" className="flex-1 h-8 text-xs" onClick={addOther} disabled={!otherDraft.description}>Adicionar</Button>
-            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setActiveForm(null)}>Cancelar</Button>
+            <Button size="sm" className="flex-1 h-8 text-xs" onClick={addOther} disabled={!otherDraft.description}>{submitLabel}</Button>
+            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={resetAllForms}>Cancelar</Button>
           </div>
         </div>
       )}
