@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Meal, Participant } from "@/types/trip";
 import { AddMealDialog } from "./AddMealDialog";
+import { ExpensePaymentsList, PaymentStatusBadge } from "./ExpensePaymentsList";
 import { UtensilsCrossed, Star, Trash2, Pencil } from "lucide-react";
 
 interface Props {
@@ -12,9 +13,11 @@ interface Props {
 
 export function MealCard({ meal, participants, onDelete, onUpdate }: Props) {
   const [editOpen, setEditOpen] = useState(false);
+  const [showPayments, setShowPayments] = useState(false);
   const payer = participants.find((p) => p.id === meal.paidBy);
   const sharers = participants.filter((p) => meal.sharedBy.includes(p.id));
   const perPerson = meal.totalBill / (meal.sharedBy.length || 1);
+  const hasPaymentPlan = meal.expensePayments && meal.expensePayments.length > 0;
 
   return (
     <>
@@ -52,6 +55,13 @@ export function MealCard({ meal, participants, onDelete, onUpdate }: Props) {
             )}
           </div>
 
+          {/* Payment status badge */}
+          {hasPaymentPlan && (
+            <div className="mt-2">
+              <PaymentStatusBadge totalAmount={meal.totalBill} payments={meal.expensePayments} />
+            </div>
+          )}
+
           <div className="flex items-center gap-0.5 mt-2">
             {[1, 2, 3, 4, 5].map((s) => (
               <button key={s} onClick={() => onUpdate({ ...meal, rating: s })}>
@@ -63,6 +73,25 @@ export function MealCard({ meal, participants, onDelete, onUpdate }: Props) {
                 />
               </button>
             ))}
+          </div>
+
+          {/* Payments section */}
+          <div className="mt-2 pt-2 border-t border-border/40">
+            {showPayments || hasPaymentPlan ? (
+              <ExpensePaymentsList
+                totalAmount={meal.totalBill}
+                payments={meal.expensePayments || []}
+                participants={participants}
+                onChange={(payments) => onUpdate({ ...meal, expensePayments: payments })}
+              />
+            ) : (
+              <button
+                onClick={() => setShowPayments(true)}
+                className="text-[11px] text-muted-foreground hover:text-primary transition-colors"
+              >
+                + Gerir pagamentos parciais
+              </button>
+            )}
           </div>
         </div>
       </div>
