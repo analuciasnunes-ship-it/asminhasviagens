@@ -258,6 +258,7 @@ const TripExpensesPage = () => {
   const balances = calculateBalances(trip);
   const settlements = calculateSettlements(balances);
   const payments = trip.payments || [];
+  const pendingPayments = usePendingPayments(trip);
 
   const handleAddPayment = (payment: Payment) => {
     const existing = (trip.payments || []).find((p) => p.id === payment.id);
