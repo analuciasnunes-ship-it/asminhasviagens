@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useTrips } from "@/hooks/useTrips";
-import { ArrowLeft, Wallet, ArrowRight, Trash2, Pencil, Plane, Home, UtensilsCrossed, MapPin, ShoppingCart, Receipt, PieChart } from "lucide-react";
-import { Trip, Payment } from "@/types/trip";
+import { ArrowLeft, Wallet, ArrowRight, Trash2, Pencil, Plane, Home, UtensilsCrossed, MapPin, ShoppingCart, Receipt, PieChart, Calendar, Clock } from "lucide-react";
+import { Trip, Payment, ExpensePayment } from "@/types/trip";
 import { calculateBalances, calculateSettlements, calculateTripTotals } from "@/lib/expenseUtils";
 import { AddPaymentDialog } from "@/components/AddPaymentDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { useState, useMemo } from "react";
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
@@ -95,6 +96,145 @@ function useExpenseCategories(trip: Trip): CategoryData[] {
   }, [trip]);
 }
 
+interface PendingPaymentItem {
+  id: string;
+  expenseName: string;
+  category: string;
+  amount: number;
+  payer: string;
+  dueDate: string;
+  status: "pending";
+}
+
+function usePendingPayments(trip: Trip): PendingPaymentItem[] {
+  return useMemo(() => {
+    const pendingItems: PendingPaymentItem[] = [];
+    const participants = trip.participants || [];
+
+    // Helper to get participant name
+    const getParticipantName = (id: string) => participants.find(p => p.id === id)?.name || "?";
+
+    // Helper to add pending payments from expense payments
+    const addPendingFromExpensePayments = (
+      expensePayments: ExpensePayment[] | undefined,
+      expenseName: string,
+      category: string
+    ) => {
+      if (!expensePayments) return;
+      expensePayments
+        .filter(ep => ep.status === "pending")
+        .forEach(ep => {
+          pendingItems.push({
+            id: ep.id,
+            expenseName,
+            category,
+            amount: ep.amount,
+            payer: getParticipantName(ep.paidBy),
+            dueDate: ep.date,
+            status: "pending"
+          });
+        });
+    };
+
+    // Process all expense sources
+    for (const day of trip.days) {
+      // Meals
+      (day.meals || []).forEach(meal => {
+        addPendingFromExpensePayments(
+          meal.expensePayments,
+          meal.restaurantName || "Refeição",
+          "Refeições"
+        );
+      });
+
+      // General expenses
+      (day.expenses || []).forEach(expense => {
+        addPendingFromExpensePayments(
+          expense.expensePayments,
+          expense.description,
+          expense.type === "supermarket" ? "Supermercado" : "Outros"
+        );
+      });
+
+      // Activities
+      (day.activities || []).forEach(activity => {
+        addPendingFromExpensePayments(
+          activity.expensePayments,
+          activity.title,
+          "Atividades"
+        );
+      });
+
+      // Day-level details
+      (day.flights || []).forEach(flight => {
+        const name = flight.flightNumber 
+          ? `Voo ${flight.flightNumber}` 
+          : `${flight.origin || "?"} → ${flight.destination || "?"}`;
+        addPendingFromExpensePayments(flight.expensePayments, name, "Voos");
+      });
+
+      (day.accommodations || []).forEach(acc => {
+        addPendingFromExpensePayments(
+          acc.expensePayments,
+          acc.placeName || "Alojamento",
+          "Alojamento"
+        );
+      });
+
+      (day.rentalCars || []).forEach(car => {
+        addPendingFromExpensePayments(
+          car.expensePayments,
+          car.company || "Carro alugado",
+          "Outros"
+        );
+      });
+
+      (day.otherDetails || []).forEach(other => {
+        addPendingFromExpensePayments(
+          other.expensePayments,
+          other.description || "Outros",
+          "Outros"
+        );
+      });
+    }
+
+    // Trip-level details
+    (trip.flights || []).forEach(flight => {
+      const name = flight.flightNumber 
+        ? `Voo ${flight.flightNumber}` 
+        : `${flight.origin || "?"} → ${flight.destination || "?"}`;
+      addPendingFromExpensePayments(flight.expensePayments, name, "Voos");
+    });
+
+    (trip.accommodations || []).forEach(acc => {
+      addPendingFromExpensePayments(
+        acc.expensePayments,
+        acc.placeName || "Alojamento",
+        "Alojamento"
+      );
+    });
+
+    (trip.rentalCars || []).forEach(car => {
+      addPendingFromExpensePayments(
+        car.expensePayments,
+        car.company || "Carro alugado",
+        "Outros"
+      );
+    });
+
+    (trip.otherDetails || []).forEach(other => {
+      addPendingFromExpensePayments(
+        other.expensePayments,
+        other.description || "Outros",
+        "Outros"
+      );
+    });
+
+    // Sort by due date
+    return pendingItems.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  }, [trip]);
+}
+
 const TripExpensesPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -118,6 +258,7 @@ const TripExpensesPage = () => {
   const balances = calculateBalances(trip);
   const settlements = calculateSettlements(balances);
   const payments = trip.payments || [];
+  const pendingPayments = usePendingPayments(trip);
 
   const handleAddPayment = (payment: Payment) => {
     const existing = (trip.payments || []).find((p) => p.id === payment.id);
@@ -158,30 +299,49 @@ const TripExpensesPage = () => {
         <header className="mb-6">
           <h1 className="text-2xl font-bold text-foreground">Despesas da viagem</h1>
           <p className="text-sm text-muted-foreground mt-1">{trip.destination}</p>
-          {grandTotal > 0 && (
-            <div className="mt-3 space-y-1.5">
-              <div className="inline-flex items-center bg-secondary px-3 py-1.5 rounded-full">
-                <span className="text-sm font-semibold text-foreground">
-                  Total: {tripTotals.total.toFixed(2)}€
-                </span>
+          
+          {tripTotals.total > 0 && (
+            <div className="mt-4 space-y-3">
+              {/* Four metrics */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-card border border-border rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Total estimado</p>
+                  <p className="text-lg font-semibold text-foreground">{tripTotals.total.toFixed(2)}€</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Custo real atual</p>
+                  <p className="text-lg font-semibold text-success">{tripTotals.paid.toFixed(2)}€</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Pago</p>
+                  <p className="text-lg font-semibold text-success">{tripTotals.paid.toFixed(2)}€</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Pendente</p>
+                  <p className="text-lg font-semibold text-warning">{tripTotals.pending.toFixed(2)}€</p>
+                </div>
               </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground px-1">
-                <span className="text-success font-medium">{tripTotals.paid.toFixed(2)}€ pago</span>
-                {tripTotals.pending > 0.01 && (
-                  <>
-                    <span>•</span>
-                    <span className="text-warning font-medium">{tripTotals.pending.toFixed(2)}€ pendente</span>
-                  </>
-                )}
+              
+              {/* Progress bar */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Progresso de pagamento</span>
+                  <span>{tripTotals.total > 0 ? Math.round((tripTotals.paid / tripTotals.total) * 100) : 0}%</span>
+                </div>
+                <Progress 
+                  value={tripTotals.total > 0 ? (tripTotals.paid / tripTotals.total) * 100 : 0} 
+                  className="h-2"
+                />
               </div>
             </div>
           )}
         </header>
 
         <Tabs defaultValue="balance" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 mb-4">
+          <TabsList className="w-full grid grid-cols-4 mb-4">
             <TabsTrigger value="balance" className="text-xs">Balanço</TabsTrigger>
             <TabsTrigger value="categories" className="text-xs">Categorias</TabsTrigger>
+            <TabsTrigger value="payments" className="text-xs">Pagamentos</TabsTrigger>
             <TabsTrigger value="settlements" className="text-xs">Acertos</TabsTrigger>
           </TabsList>
 
@@ -268,6 +428,60 @@ const TripExpensesPage = () => {
                     ))}
                   </div>
                 </div>
+              </>
+            )}
+          </TabsContent>
+
+          {/* Payments Tab */}
+          <TabsContent value="payments" className="space-y-2">
+            {pendingPayments.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Sem pagamentos pendentes.</p>
+            ) : (
+              <>
+                <h4 className="text-sm font-medium text-muted-foreground mb-3">Pagamentos pendentes ({pendingPayments.length})</h4>
+                {pendingPayments.map((payment) => {
+                  const dueDate = new Date(payment.dueDate);
+                  const today = new Date();
+                  const isOverdue = dueDate < today;
+                  const isToday = dueDate.toDateString() === today.toDateString();
+                  
+                  return (
+                    <div key={payment.id} className="rounded-xl border border-border bg-card p-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Calendar size={12} className="text-muted-foreground" />
+                            <span className={`text-xs font-medium ${
+                              isOverdue 
+                                ? "text-destructive" 
+                                : isToday 
+                                ? "text-warning" 
+                                : "text-muted-foreground"
+                            }`}>
+                              {dueDate.toLocaleDateString("pt-PT", { 
+                                day: "2-digit", 
+                                month: "short", 
+                                year: "numeric" 
+                              })}
+                              {isOverdue && " (atrasado)"}
+                              {isToday && " (hoje)"}
+                            </span>
+                          </div>
+                          <h5 className="text-sm font-medium text-foreground">{payment.expenseName}</h5>
+                          <p className="text-xs text-muted-foreground">{payment.category}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-warning">{payment.amount.toFixed(2)}€</p>
+                          <p className="text-xs text-muted-foreground">por {payment.payer}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <Clock size={10} className="text-warning" />
+                        <span className="text-warning font-medium">pendente</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </>
             )}
           </TabsContent>
