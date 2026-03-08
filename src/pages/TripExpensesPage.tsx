@@ -338,9 +338,10 @@ const TripExpensesPage = () => {
         </header>
 
         <Tabs defaultValue="balance" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 mb-4">
+          <TabsList className="w-full grid grid-cols-4 mb-4">
             <TabsTrigger value="balance" className="text-xs">Balanço</TabsTrigger>
             <TabsTrigger value="categories" className="text-xs">Categorias</TabsTrigger>
+            <TabsTrigger value="payments" className="text-xs">Pagamentos</TabsTrigger>
             <TabsTrigger value="settlements" className="text-xs">Acertos</TabsTrigger>
           </TabsList>
 
