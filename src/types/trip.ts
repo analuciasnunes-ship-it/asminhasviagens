@@ -18,6 +18,14 @@ export interface Participant {
   name: string;
 }
 
+export interface ExpensePayment {
+  id: string;
+  amount: number;
+  paidBy: string; // participant id
+  date: string;
+  status: "paid" | "pending";
+}
+
 export interface Activity {
   id: string;
   title: string;
@@ -33,6 +41,7 @@ export interface Activity {
   photos?: string[];
   rating?: number;
   comments?: string;
+  expensePayments?: ExpensePayment[];
 }
 
 export interface Meal {
@@ -45,6 +54,7 @@ export interface Meal {
   totalBill: number;
   paidBy: string; // participant id
   sharedBy: string[]; // participant ids
+  expensePayments?: ExpensePayment[];
 }
 
 export interface Expense {
@@ -55,6 +65,7 @@ export interface Expense {
   paidBy: string;
   sharedBy: string[];
   notes?: string;
+  expensePayments?: ExpensePayment[];
 }
 
 export interface Payment {
@@ -92,6 +103,7 @@ export interface Flight {
   price?: number;
   paidBy?: string;
   sharedBy?: string[];
+  expensePayments?: ExpensePayment[];
 }
 
 export interface Accommodation {
@@ -103,6 +115,7 @@ export interface Accommodation {
   price?: number;
   paidBy?: string;
   sharedBy?: string[];
+  expensePayments?: ExpensePayment[];
 }
 
 export interface RentalCar {
@@ -113,6 +126,7 @@ export interface RentalCar {
   price?: number;
   paidBy?: string;
   sharedBy?: string[];
+  expensePayments?: ExpensePayment[];
 }
 
 export interface OtherDetail {
@@ -122,6 +136,7 @@ export interface OtherDetail {
   price?: number;
   paidBy?: string;
   sharedBy?: string[];
+  expensePayments?: ExpensePayment[];
 }
 
 export interface Trip {
