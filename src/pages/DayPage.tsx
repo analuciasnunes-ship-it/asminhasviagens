@@ -68,6 +68,10 @@ const DayPage = () => {
   const handleRemoveAccommodation = (aid: string) => updateDay({ accommodations: dayAccommodations.filter((x) => x.id !== aid) });
   const handleRemoveCar = (cid: string) => updateDay({ rentalCars: dayRentalCars.filter((x) => x.id !== cid) });
   const handleRemoveOther = (oid: string) => updateDay({ otherDetails: dayOtherDetails.filter((x) => x.id !== oid) });
+  const handleUpdateFlight = (f: Flight) => updateDay({ flights: dayFlights.map((x) => x.id === f.id ? f : x) });
+  const handleUpdateAccommodation = (a: Accommodation) => updateDay({ accommodations: dayAccommodations.map((x) => x.id === a.id ? a : x) });
+  const handleUpdateCar = (c: RentalCar) => updateDay({ rentalCars: dayRentalCars.map((x) => x.id === c.id ? c : x) });
+  const handleUpdateOther = (o: OtherDetail) => updateDay({ otherDetails: dayOtherDetails.map((x) => x.id === o.id ? o : x) });
 
 
 
@@ -128,6 +132,10 @@ const DayPage = () => {
           onRemoveAccommodation={handleRemoveAccommodation}
           onRemoveCar={handleRemoveCar}
           onRemoveOther={handleRemoveOther}
+          onUpdateFlight={handleUpdateFlight}
+          onUpdateAccommodation={handleUpdateAccommodation}
+          onUpdateCar={handleUpdateCar}
+          onUpdateOther={handleUpdateOther}
           compact
         />
 
