@@ -458,6 +458,17 @@ export function TripDetails({
                 onPaidByChange={(id) => setOwDraft({ ...owDraft, paidBy: id })}
                 onSharedByChange={(ids) => setOwDraft({ ...owDraft, sharedBy: ids })}
               />
+              {owDraft.price && parseFloat(owDraft.price) > 0 && participants.length > 0 && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Pagamentos (opcional)</Label>
+                  <ExpensePaymentsList
+                    totalAmount={parseFloat(owDraft.price)}
+                    payments={owDraft.expensePayments}
+                    participants={participants}
+                    onChange={(p) => setOwDraft({ ...owDraft, expensePayments: p })}
+                  />
+                </div>
+              )}
               <div className="flex gap-2 pt-1">
                 <Button size="sm" className="flex-1 h-8 text-xs" onClick={addOneway} disabled={!owDraft.origin || !owDraft.destination}>Adicionar</Button>
                 <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={resetFlightForm}>Cancelar</Button>
