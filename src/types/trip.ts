@@ -54,6 +54,7 @@ export interface Meal {
   totalBill: number;
   paidBy: string; // participant id
   sharedBy: string[]; // participant ids
+  expensePayments?: ExpensePayment[];
 }
 
 export interface Expense {
