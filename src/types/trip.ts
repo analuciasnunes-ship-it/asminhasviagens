@@ -126,6 +126,7 @@ export interface RentalCar {
   price?: number;
   paidBy?: string;
   sharedBy?: string[];
+  expensePayments?: ExpensePayment[];
 }
 
 export interface OtherDetail {
