@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Flight, Accommodation, RentalCar, OtherDetail, Participant } from "@/types/trip";
+import { Flight, Accommodation, RentalCar, OtherDetail, Participant, ExpensePayment } from "@/types/trip";
+import { ExpensePaymentsList } from "./ExpensePaymentsList";
+import { PaymentStatusBadge } from "./ExpensePaymentsList";
 import { Plane, Hotel, Car, Package, Plus, Trash2, ArrowLeftRight, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,8 +37,8 @@ interface Props {
   compact?: boolean;
 }
 
-const emptyRoundtrip = { origin: "", destination: "", departureTime: "", arrivalTime: "", returnDepartureTime: "", returnArrivalTime: "", price: "", paidBy: "", sharedBy: [] as string[] };
-const emptyOneway = { origin: "", destination: "", flightNumber: "", departureTime: "", arrivalTime: "", price: "", paidBy: "", sharedBy: [] as string[] };
+const emptyRoundtrip = { origin: "", destination: "", departureTime: "", arrivalTime: "", returnDepartureTime: "", returnArrivalTime: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] };
+const emptyOneway = { origin: "", destination: "", flightNumber: "", departureTime: "", arrivalTime: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] };
 
 function ExpenseSplitFields({ participants, paidBy, sharedBy, onPaidByChange, onSharedByChange }: {
   participants: Participant[];
@@ -118,9 +120,9 @@ export function TripDetails({
   const [flightMode, setFlightMode] = useState<FlightMode>(null);
   const [rtDraft, setRtDraft] = useState(emptyRoundtrip);
   const [owDraft, setOwDraft] = useState(emptyOneway);
-  const [accDraft, setAccDraft] = useState({ placeName: "", address: "", checkIn: "", checkOut: "", price: "", paidBy: "", sharedBy: [] as string[] });
-  const [carDraft, setCarDraft] = useState({ company: "", pickupDate: "", dropoffDate: "", price: "", paidBy: "", sharedBy: [] as string[] });
-  const [otherDraft, setOtherDraft] = useState({ description: "", notes: "", price: "", paidBy: "", sharedBy: [] as string[] });
+  const [accDraft, setAccDraft] = useState({ placeName: "", address: "", checkIn: "", checkOut: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] });
+  const [carDraft, setCarDraft] = useState({ company: "", pickupDate: "", dropoffDate: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] });
+  const [otherDraft, setOtherDraft] = useState({ description: "", notes: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] });
 
   const hasItems = flights.length > 0 || accommodations.length > 0 || rentalCars.length > 0 || otherDetails.length > 0;
 
@@ -149,6 +151,7 @@ export function TripDetails({
       price: rtDraft.price ? parseFloat(rtDraft.price) : undefined,
       paidBy: rtDraft.paidBy || undefined,
       sharedBy: rtDraft.sharedBy.length > 0 ? rtDraft.sharedBy : undefined,
+      expensePayments: rtDraft.expensePayments.length > 0 ? rtDraft.expensePayments : undefined,
     });
     resetFlightForm();
   };
@@ -164,6 +167,7 @@ export function TripDetails({
       price: owDraft.price ? parseFloat(owDraft.price) : undefined,
       paidBy: owDraft.paidBy || undefined,
       sharedBy: owDraft.sharedBy.length > 0 ? owDraft.sharedBy : undefined,
+      expensePayments: owDraft.expensePayments.length > 0 ? owDraft.expensePayments : undefined,
     });
     resetFlightForm();
   };
@@ -176,8 +180,9 @@ export function TripDetails({
       price: accDraft.price ? parseFloat(accDraft.price) : undefined,
       paidBy: accDraft.paidBy || undefined,
       sharedBy: accDraft.sharedBy.length > 0 ? accDraft.sharedBy : undefined,
+      expensePayments: accDraft.expensePayments.length > 0 ? accDraft.expensePayments : undefined,
     });
-    setAccDraft({ placeName: "", address: "", checkIn: "", checkOut: "", price: "", paidBy: "", sharedBy: [] });
+    setAccDraft({ placeName: "", address: "", checkIn: "", checkOut: "", price: "", paidBy: "", sharedBy: [], expensePayments: [] });
     setActiveForm(null);
   };
 
@@ -189,8 +194,9 @@ export function TripDetails({
       price: carDraft.price ? parseFloat(carDraft.price) : undefined,
       paidBy: carDraft.paidBy || undefined,
       sharedBy: carDraft.sharedBy.length > 0 ? carDraft.sharedBy : undefined,
+      expensePayments: carDraft.expensePayments.length > 0 ? carDraft.expensePayments : undefined,
     });
-    setCarDraft({ company: "", pickupDate: "", dropoffDate: "", price: "", paidBy: "", sharedBy: [] });
+    setCarDraft({ company: "", pickupDate: "", dropoffDate: "", price: "", paidBy: "", sharedBy: [], expensePayments: [] });
     setActiveForm(null);
   };
 
@@ -202,8 +208,9 @@ export function TripDetails({
       price: otherDraft.price ? parseFloat(otherDraft.price) : undefined,
       paidBy: otherDraft.paidBy || undefined,
       sharedBy: otherDraft.sharedBy.length > 0 ? otherDraft.sharedBy : undefined,
+      expensePayments: otherDraft.expensePayments.length > 0 ? otherDraft.expensePayments : undefined,
     });
-    setOtherDraft({ description: "", notes: "", price: "", paidBy: "", sharedBy: [] });
+    setOtherDraft({ description: "", notes: "", price: "", paidBy: "", sharedBy: [], expensePayments: [] });
     setActiveForm(null);
   };
 
@@ -261,6 +268,9 @@ export function TripDetails({
                 </p>
               </div>
               <SplitInfo participants={participants} paidBy={f.paidBy} sharedBy={f.sharedBy} price={f.price} />
+              {f.price && f.expensePayments && f.expensePayments.length > 0 && (
+                <PaymentStatusBadge totalAmount={f.price} payments={f.expensePayments} />
+              )}
             </div>
             <button onClick={() => onRemoveFlight(f.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors mt-1">
               <Trash2 size={14} />
@@ -286,6 +296,9 @@ export function TripDetails({
               {f.departureTime && `${f.departureTime}`}{f.arrivalTime && ` → ${f.arrivalTime}`}
             </p>
             <SplitInfo participants={participants} paidBy={f.paidBy} sharedBy={f.sharedBy} price={f.price} />
+            {f.price && f.expensePayments && f.expensePayments.length > 0 && (
+              <PaymentStatusBadge totalAmount={f.price} payments={f.expensePayments} />
+            )}
           </div>
           <button onClick={() => onRemoveFlight(f.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
             <Trash2 size={14} />
@@ -320,6 +333,9 @@ export function TripDetails({
               {formatDate(a.checkIn)} – {formatDate(a.checkOut)}{a.address && ` · ${a.address}`}
             </p>
             <SplitInfo participants={participants} paidBy={a.paidBy} sharedBy={a.sharedBy} price={a.price} />
+            {a.price && a.expensePayments && a.expensePayments.length > 0 && (
+              <PaymentStatusBadge totalAmount={a.price} payments={a.expensePayments} />
+            )}
           </div>
           <button onClick={() => onRemoveAccommodation(a.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
             <Trash2 size={14} />
@@ -341,6 +357,9 @@ export function TripDetails({
               {formatDate(c.pickupDate)} – {formatDate(c.dropoffDate)}
             </p>
             <SplitInfo participants={participants} paidBy={c.paidBy} sharedBy={c.sharedBy} price={c.price} />
+            {c.price && c.expensePayments && c.expensePayments.length > 0 && (
+              <PaymentStatusBadge totalAmount={c.price} payments={c.expensePayments} />
+            )}
           </div>
           <button onClick={() => onRemoveCar(c.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
             <Trash2 size={14} />
@@ -360,6 +379,9 @@ export function TripDetails({
             </p>
             {o.notes && <p className="text-xs text-muted-foreground italic">{o.notes}</p>}
             <SplitInfo participants={participants} paidBy={o.paidBy} sharedBy={o.sharedBy} price={o.price} />
+            {o.price && o.expensePayments && o.expensePayments.length > 0 && (
+              <PaymentStatusBadge totalAmount={o.price} payments={o.expensePayments} />
+            )}
           </div>
           <button onClick={() => onRemoveOther?.(o.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
             <Trash2 size={14} />
@@ -414,6 +436,17 @@ export function TripDetails({
                 onPaidByChange={(id) => setRtDraft({ ...rtDraft, paidBy: id })}
                 onSharedByChange={(ids) => setRtDraft({ ...rtDraft, sharedBy: ids })}
               />
+              {rtDraft.price && parseFloat(rtDraft.price) > 0 && participants.length > 0 && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Pagamentos (opcional)</Label>
+                  <ExpensePaymentsList
+                    totalAmount={parseFloat(rtDraft.price)}
+                    payments={rtDraft.expensePayments}
+                    participants={participants}
+                    onChange={(p) => setRtDraft({ ...rtDraft, expensePayments: p })}
+                  />
+                </div>
+              )}
               <div className="flex gap-2 pt-1">
                 <Button size="sm" className="flex-1 h-8 text-xs" onClick={addRoundtrip} disabled={!rtDraft.origin || !rtDraft.destination}>Adicionar</Button>
                 <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={resetFlightForm}>Cancelar</Button>
@@ -440,6 +473,17 @@ export function TripDetails({
                 onPaidByChange={(id) => setOwDraft({ ...owDraft, paidBy: id })}
                 onSharedByChange={(ids) => setOwDraft({ ...owDraft, sharedBy: ids })}
               />
+              {owDraft.price && parseFloat(owDraft.price) > 0 && participants.length > 0 && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Pagamentos (opcional)</Label>
+                  <ExpensePaymentsList
+                    totalAmount={parseFloat(owDraft.price)}
+                    payments={owDraft.expensePayments}
+                    participants={participants}
+                    onChange={(p) => setOwDraft({ ...owDraft, expensePayments: p })}
+                  />
+                </div>
+              )}
               <div className="flex gap-2 pt-1">
                 <Button size="sm" className="flex-1 h-8 text-xs" onClick={addOneway} disabled={!owDraft.origin || !owDraft.destination}>Adicionar</Button>
                 <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={resetFlightForm}>Cancelar</Button>
@@ -470,6 +514,17 @@ export function TripDetails({
             onPaidByChange={(id) => setAccDraft({ ...accDraft, paidBy: id })}
             onSharedByChange={(ids) => setAccDraft({ ...accDraft, sharedBy: ids })}
           />
+          {accDraft.price && parseFloat(accDraft.price) > 0 && participants.length > 0 && (
+            <div className="space-y-1">
+              <Label className="text-xs">Pagamentos (opcional)</Label>
+              <ExpensePaymentsList
+                totalAmount={parseFloat(accDraft.price)}
+                payments={accDraft.expensePayments}
+                participants={participants}
+                onChange={(p) => setAccDraft({ ...accDraft, expensePayments: p })}
+              />
+            </div>
+          )}
           <div className="flex gap-2 pt-1">
             <Button size="sm" className="flex-1 h-8 text-xs" onClick={addAccommodation} disabled={!accDraft.placeName || !accDraft.checkIn || !accDraft.checkOut}>Adicionar</Button>
             <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setActiveForm(null)}>Cancelar</Button>
@@ -497,6 +552,17 @@ export function TripDetails({
             onPaidByChange={(id) => setCarDraft({ ...carDraft, paidBy: id })}
             onSharedByChange={(ids) => setCarDraft({ ...carDraft, sharedBy: ids })}
           />
+          {carDraft.price && parseFloat(carDraft.price) > 0 && participants.length > 0 && (
+            <div className="space-y-1">
+              <Label className="text-xs">Pagamentos (opcional)</Label>
+              <ExpensePaymentsList
+                totalAmount={parseFloat(carDraft.price)}
+                payments={carDraft.expensePayments}
+                participants={participants}
+                onChange={(p) => setCarDraft({ ...carDraft, expensePayments: p })}
+              />
+            </div>
+          )}
           <div className="flex gap-2 pt-1">
             <Button size="sm" className="flex-1 h-8 text-xs" onClick={addCar} disabled={!carDraft.company || !carDraft.pickupDate || !carDraft.dropoffDate}>Adicionar</Button>
             <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setActiveForm(null)}>Cancelar</Button>
@@ -521,6 +587,17 @@ export function TripDetails({
             onPaidByChange={(id) => setOtherDraft({ ...otherDraft, paidBy: id })}
             onSharedByChange={(ids) => setOtherDraft({ ...otherDraft, sharedBy: ids })}
           />
+          {otherDraft.price && parseFloat(otherDraft.price) > 0 && participants.length > 0 && (
+            <div className="space-y-1">
+              <Label className="text-xs">Pagamentos (opcional)</Label>
+              <ExpensePaymentsList
+                totalAmount={parseFloat(otherDraft.price)}
+                payments={otherDraft.expensePayments}
+                participants={participants}
+                onChange={(p) => setOtherDraft({ ...otherDraft, expensePayments: p })}
+              />
+            </div>
+          )}
           <div className="flex gap-2 pt-1">
             <Button size="sm" className="flex-1 h-8 text-xs" onClick={addOther} disabled={!otherDraft.description}>Adicionar</Button>
             <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setActiveForm(null)}>Cancelar</Button>
