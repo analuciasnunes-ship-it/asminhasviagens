@@ -1,5 +1,6 @@
 import { Trip } from "@/types/trip";
 import { Receipt, ChevronRight } from "lucide-react";
+import { calculateTripTotals } from "@/lib/expenseUtils";
 
 interface Props {
   trip: Trip;
