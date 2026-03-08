@@ -65,6 +65,7 @@ export interface Expense {
   paidBy: string;
   sharedBy: string[];
   notes?: string;
+  expensePayments?: ExpensePayment[];
 }
 
 export interface Payment {
