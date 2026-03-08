@@ -103,6 +103,7 @@ export interface Flight {
   price?: number;
   paidBy?: string;
   sharedBy?: string[];
+  expensePayments?: ExpensePayment[];
 }
 
 export interface Accommodation {
