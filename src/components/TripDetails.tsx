@@ -572,6 +572,17 @@ export function TripDetails({
             onPaidByChange={(id) => setOtherDraft({ ...otherDraft, paidBy: id })}
             onSharedByChange={(ids) => setOtherDraft({ ...otherDraft, sharedBy: ids })}
           />
+          {otherDraft.price && parseFloat(otherDraft.price) > 0 && participants.length > 0 && (
+            <div className="space-y-1">
+              <Label className="text-xs">Pagamentos (opcional)</Label>
+              <ExpensePaymentsList
+                totalAmount={parseFloat(otherDraft.price)}
+                payments={otherDraft.expensePayments}
+                participants={participants}
+                onChange={(p) => setOtherDraft({ ...otherDraft, expensePayments: p })}
+              />
+            </div>
+          )}
           <div className="flex gap-2 pt-1">
             <Button size="sm" className="flex-1 h-8 text-xs" onClick={addOther} disabled={!otherDraft.description}>Adicionar</Button>
             <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setActiveForm(null)}>Cancelar</Button>
