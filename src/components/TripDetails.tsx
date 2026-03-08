@@ -296,6 +296,9 @@ export function TripDetails({
               {f.departureTime && `${f.departureTime}`}{f.arrivalTime && ` → ${f.arrivalTime}`}
             </p>
             <SplitInfo participants={participants} paidBy={f.paidBy} sharedBy={f.sharedBy} price={f.price} />
+            {f.price && f.expensePayments && f.expensePayments.length > 0 && (
+              <PaymentStatusBadge totalAmount={f.price} payments={f.expensePayments} />
+            )}
           </div>
           <button onClick={() => onRemoveFlight(f.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
             <Trash2 size={14} />
