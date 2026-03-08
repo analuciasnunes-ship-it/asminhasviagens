@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UtensilsCrossed } from "lucide-react";
-import { Meal, Participant } from "@/types/trip";
+import { Meal, Participant, ExpensePayment } from "@/types/trip";
+import { ExpensePaymentsList } from "./ExpensePaymentsList";
 
 interface Props {
   participants: Participant[];
@@ -28,6 +29,7 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
   const [totalBill, setTotalBill] = useState("");
   const [paidBy, setPaidBy] = useState(participants[0]?.id || "");
   const [sharedBy, setSharedBy] = useState<string[]>(participants.map((p) => p.id));
+  const [expensePayments, setExpensePayments] = useState<ExpensePayment[]>([]);
 
   useEffect(() => {
     if (open && editMeal) {
@@ -37,6 +39,7 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
       setTotalBill(editMeal.totalBill.toString());
       setPaidBy(editMeal.paidBy);
       setSharedBy(editMeal.sharedBy);
+      setExpensePayments(editMeal.expensePayments || []);
     } else if (open && !editMeal) {
       setTime("");
       setRestaurantName("");
@@ -44,6 +47,7 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
       setTotalBill("");
       setPaidBy(participants[0]?.id || "");
       setSharedBy(participants.map((p) => p.id));
+      setExpensePayments([]);
     }
   }, [open, editMeal]);
 
@@ -59,6 +63,7 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
       totalBill: parseFloat(totalBill),
       paidBy,
       sharedBy,
+      expensePayments: expensePayments.length > 0 ? expensePayments : undefined,
     });
     setOpen(false);
   };
@@ -69,6 +74,7 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
 
   const perPerson = totalBill && sharedBy.length > 0 ? parseFloat(totalBill) / sharedBy.length : 0;
   const isEdit = !!editMeal;
+  const billNum = totalBill ? parseFloat(totalBill) : 0;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -148,6 +154,19 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
               </p>
             )}
           </div>
+
+          {/* Payments section */}
+          {billNum > 0 && (
+            <div className="space-y-2">
+              <Label>Pagamentos (opcional)</Label>
+              <ExpensePaymentsList
+                totalAmount={billNum}
+                payments={expensePayments}
+                participants={participants}
+                onChange={setExpensePayments}
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Notas (opcional)</Label>

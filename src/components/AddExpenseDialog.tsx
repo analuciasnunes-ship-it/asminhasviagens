@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ShoppingCart, Receipt } from "lucide-react";
-import { Expense, Participant } from "@/types/trip";
+import { Expense, Participant, ExpensePayment } from "@/types/trip";
+import { ExpensePaymentsList } from "./ExpensePaymentsList";
 
 interface Props {
   participants: Participant[];
@@ -32,6 +33,7 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger, ed
   const [notes, setNotes] = useState("");
   const [paidBy, setPaidBy] = useState(participants[0]?.id || "");
   const [sharedBy, setSharedBy] = useState<string[]>(participants.map((p) => p.id));
+  const [expensePayments, setExpensePayments] = useState<ExpensePayment[]>([]);
 
   useEffect(() => {
     if (open && editExpense) {
@@ -40,12 +42,14 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger, ed
       setNotes(editExpense.notes || "");
       setPaidBy(editExpense.paidBy);
       setSharedBy(editExpense.sharedBy);
+      setExpensePayments(editExpense.expensePayments || []);
     } else if (open && !editExpense) {
       setDescription("");
       setAmount("");
       setNotes("");
       setPaidBy(participants[0]?.id || "");
       setSharedBy(participants.map((p) => p.id));
+      setExpensePayments([]);
     }
   }, [open, editExpense]);
 
@@ -59,6 +63,7 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger, ed
       paidBy,
       sharedBy,
       notes: notes || undefined,
+      expensePayments: expensePayments.length > 0 ? expensePayments : undefined,
     });
     setOpen(false);
   };
@@ -69,6 +74,7 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger, ed
 
   const perPerson = amount && sharedBy.length > 0 ? parseFloat(amount) / sharedBy.length : 0;
   const isEdit = !!editExpense;
+  const amountNum = amount ? parseFloat(amount) : 0;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -142,6 +148,19 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger, ed
               </p>
             )}
           </div>
+
+          {/* Payments section */}
+          {amountNum > 0 && (
+            <div className="space-y-2">
+              <Label>Pagamentos (opcional)</Label>
+              <ExpensePaymentsList
+                totalAmount={amountNum}
+                payments={expensePayments}
+                participants={participants}
+                onChange={setExpensePayments}
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Notas (opcional)</Label>

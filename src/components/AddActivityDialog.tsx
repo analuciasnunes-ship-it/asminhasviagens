@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus } from "lucide-react";
-import { Activity, Participant, DURATION_OPTIONS, DurationLabel } from "@/types/trip";
+import { Activity, Participant, DURATION_OPTIONS, DurationLabel, ExpensePayment } from "@/types/trip";
+import { ExpensePaymentsList } from "./ExpensePaymentsList";
 
 interface Props {
   onAdd: (activity: Activity) => void;
@@ -30,6 +31,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
   const [duration, setDuration] = useState<DurationLabel | "">("");
   const [paidBy, setPaidBy] = useState("");
   const [sharedBy, setSharedBy] = useState<string[]>([]);
+  const [expensePayments, setExpensePayments] = useState<ExpensePayment[]>([]);
 
   useEffect(() => {
     if (open && editActivity) {
@@ -41,6 +43,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       setDuration(editActivity.estimatedDuration || "");
       setPaidBy(editActivity.paidBy || "");
       setSharedBy(editActivity.sharedBy || participants.map((p) => p.id));
+      setExpensePayments(editActivity.expensePayments || []);
     } else if (open && !editActivity) {
       setTitle("");
       setTime("");
@@ -50,6 +53,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       setDuration("");
       setPaidBy("");
       setSharedBy(participants.map((p) => p.id));
+      setExpensePayments([]);
     }
   }, [open, editActivity]);
 
@@ -76,6 +80,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       photos: editActivity?.photos || [],
       rating: editActivity?.rating,
       comments: editActivity?.comments,
+      expensePayments: expensePayments.length > 0 ? expensePayments : undefined,
     });
     setOpen(false);
   };
@@ -159,6 +164,17 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
                     {perPerson.toFixed(2)}€ por pessoa
                   </p>
                 )}
+              </div>
+
+              {/* Payments section */}
+              <div className="space-y-2">
+                <Label>Pagamentos (opcional)</Label>
+                <ExpensePaymentsList
+                  totalAmount={costNum}
+                  payments={expensePayments}
+                  participants={participants}
+                  onChange={setExpensePayments}
+                />
               </div>
             </>
           )}
