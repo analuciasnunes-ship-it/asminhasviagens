@@ -114,6 +114,7 @@ const TripExpensesPage = () => {
   const participants = trip.participants || [];
   const categories = useExpenseCategories(trip);
   const grandTotal = categories.reduce((s, c) => s + c.value, 0);
+  const tripTotals = calculateTripTotals(trip);
   const balances = calculateBalances(trip);
   const settlements = calculateSettlements(balances);
   const payments = trip.payments || [];
