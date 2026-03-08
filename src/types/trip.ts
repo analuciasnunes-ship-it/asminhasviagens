@@ -136,6 +136,7 @@ export interface OtherDetail {
   price?: number;
   paidBy?: string;
   sharedBy?: string[];
+  expensePayments?: ExpensePayment[];
 }
 
 export interface Trip {
