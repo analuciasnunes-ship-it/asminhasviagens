@@ -333,6 +333,9 @@ export function TripDetails({
               {formatDate(a.checkIn)} – {formatDate(a.checkOut)}{a.address && ` · ${a.address}`}
             </p>
             <SplitInfo participants={participants} paidBy={a.paidBy} sharedBy={a.sharedBy} price={a.price} />
+            {a.price && a.expensePayments && a.expensePayments.length > 0 && (
+              <PaymentStatusBadge totalAmount={a.price} payments={a.expensePayments} />
+            )}
           </div>
           <button onClick={() => onRemoveAccommodation(a.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
             <Trash2 size={14} />
