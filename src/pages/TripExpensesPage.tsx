@@ -432,6 +432,60 @@ const TripExpensesPage = () => {
             )}
           </TabsContent>
 
+          {/* Payments Tab */}
+          <TabsContent value="payments" className="space-y-2">
+            {pendingPayments.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Sem pagamentos pendentes.</p>
+            ) : (
+              <>
+                <h4 className="text-sm font-medium text-muted-foreground mb-3">Pagamentos pendentes ({pendingPayments.length})</h4>
+                {pendingPayments.map((payment) => {
+                  const dueDate = new Date(payment.dueDate);
+                  const today = new Date();
+                  const isOverdue = dueDate < today;
+                  const isToday = dueDate.toDateString() === today.toDateString();
+                  
+                  return (
+                    <div key={payment.id} className="rounded-xl border border-border bg-card p-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Calendar size={12} className="text-muted-foreground" />
+                            <span className={`text-xs font-medium ${
+                              isOverdue 
+                                ? "text-destructive" 
+                                : isToday 
+                                ? "text-warning" 
+                                : "text-muted-foreground"
+                            }`}>
+                              {dueDate.toLocaleDateString("pt-PT", { 
+                                day: "2-digit", 
+                                month: "short", 
+                                year: "numeric" 
+                              })}
+                              {isOverdue && " (atrasado)"}
+                              {isToday && " (hoje)"}
+                            </span>
+                          </div>
+                          <h5 className="text-sm font-medium text-foreground">{payment.expenseName}</h5>
+                          <p className="text-xs text-muted-foreground">{payment.category}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-warning">{payment.amount.toFixed(2)}€</p>
+                          <p className="text-xs text-muted-foreground">por {payment.payer}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <Clock size={10} className="text-warning" />
+                        <span className="text-warning font-medium">pendente</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </TabsContent>
+
           {/* Settlements Tab */}
           <TabsContent value="settlements" className="space-y-4">
             {settlements.length === 0 && payments.length === 0 ? (
