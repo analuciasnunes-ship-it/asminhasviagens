@@ -379,6 +379,9 @@ export function TripDetails({
             </p>
             {o.notes && <p className="text-xs text-muted-foreground italic">{o.notes}</p>}
             <SplitInfo participants={participants} paidBy={o.paidBy} sharedBy={o.sharedBy} price={o.price} />
+            {o.price && o.expensePayments && o.expensePayments.length > 0 && (
+              <PaymentStatusBadge totalAmount={o.price} payments={o.expensePayments} />
+            )}
           </div>
           <button onClick={() => onRemoveOther?.(o.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
             <Trash2 size={14} />
