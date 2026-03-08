@@ -180,8 +180,9 @@ export function TripDetails({
       price: accDraft.price ? parseFloat(accDraft.price) : undefined,
       paidBy: accDraft.paidBy || undefined,
       sharedBy: accDraft.sharedBy.length > 0 ? accDraft.sharedBy : undefined,
+      expensePayments: accDraft.expensePayments.length > 0 ? accDraft.expensePayments : undefined,
     });
-    setAccDraft({ placeName: "", address: "", checkIn: "", checkOut: "", price: "", paidBy: "", sharedBy: [] });
+    setAccDraft({ placeName: "", address: "", checkIn: "", checkOut: "", price: "", paidBy: "", sharedBy: [], expensePayments: [] });
     setActiveForm(null);
   };
 
