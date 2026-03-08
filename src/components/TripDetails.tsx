@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Flight, Accommodation, RentalCar, OtherDetail, Participant } from "@/types/trip";
+import { Flight, Accommodation, RentalCar, OtherDetail, Participant, ExpensePayment } from "@/types/trip";
+import { ExpensePaymentsList } from "./ExpensePaymentsList";
+import { PaymentStatusBadge } from "./ExpensePaymentsList";
 import { Plane, Hotel, Car, Package, Plus, Trash2, ArrowLeftRight, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
