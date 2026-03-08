@@ -37,8 +37,8 @@ interface Props {
   compact?: boolean;
 }
 
-const emptyRoundtrip = { origin: "", destination: "", departureTime: "", arrivalTime: "", returnDepartureTime: "", returnArrivalTime: "", price: "", paidBy: "", sharedBy: [] as string[] };
-const emptyOneway = { origin: "", destination: "", flightNumber: "", departureTime: "", arrivalTime: "", price: "", paidBy: "", sharedBy: [] as string[] };
+const emptyRoundtrip = { origin: "", destination: "", departureTime: "", arrivalTime: "", returnDepartureTime: "", returnArrivalTime: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] };
+const emptyOneway = { origin: "", destination: "", flightNumber: "", departureTime: "", arrivalTime: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] };
 
 function ExpenseSplitFields({ participants, paidBy, sharedBy, onPaidByChange, onSharedByChange }: {
   participants: Participant[];
