@@ -96,7 +96,7 @@ export function TodayView({ trip, onUpdateActivity, onDeleteActivity }: Props) {
               <div className="flex items-center gap-2 mt-0.5">
                 <MapPin size={13} className="text-primary shrink-0" />
                 <span className="text-sm font-semibold text-foreground truncate">
-                  {current.name}
+                  {current.title}
                 </span>
                 <span className="text-xs text-muted-foreground tabular-nums ml-auto shrink-0">
                   {current.time}
