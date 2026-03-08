@@ -120,9 +120,9 @@ export function TripDetails({
   const [flightMode, setFlightMode] = useState<FlightMode>(null);
   const [rtDraft, setRtDraft] = useState(emptyRoundtrip);
   const [owDraft, setOwDraft] = useState(emptyOneway);
-  const [accDraft, setAccDraft] = useState({ placeName: "", address: "", checkIn: "", checkOut: "", price: "", paidBy: "", sharedBy: [] as string[] });
-  const [carDraft, setCarDraft] = useState({ company: "", pickupDate: "", dropoffDate: "", price: "", paidBy: "", sharedBy: [] as string[] });
-  const [otherDraft, setOtherDraft] = useState({ description: "", notes: "", price: "", paidBy: "", sharedBy: [] as string[] });
+  const [accDraft, setAccDraft] = useState({ placeName: "", address: "", checkIn: "", checkOut: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] });
+  const [carDraft, setCarDraft] = useState({ company: "", pickupDate: "", dropoffDate: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] });
+  const [otherDraft, setOtherDraft] = useState({ description: "", notes: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] });
 
   const hasItems = flights.length > 0 || accommodations.length > 0 || rentalCars.length > 0 || otherDetails.length > 0;
 
