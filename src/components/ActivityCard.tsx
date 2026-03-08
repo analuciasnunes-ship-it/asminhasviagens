@@ -135,7 +135,8 @@ export function ActivityCard({ activity, participants = [], onUpdate, onDelete }
         </div>
 
         {isVisited && (
-          <div className="px-3 pb-3 space-y-2 border-t border-success/10 pt-3 mx-3">
+          <div className="px-3 pb-3 border-t border-success/10 pt-3 mx-3 space-y-3">
+            {/* Rating */}
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((s) => (
                 <button key={s} onClick={() => setRating(s)}>
@@ -151,8 +152,40 @@ export function ActivityCard({ activity, participants = [], onUpdate, onDelete }
               ))}
             </div>
 
-            {/* Show existing note or "Add note" button */}
-            {activity.comments || showNote ? (
+            {/* Divider */}
+            <div className="border-t border-border/40" />
+
+            {/* Action buttons row */}
+            <div className="flex items-center gap-4">
+              {!(activity.comments || showNote) && (
+                <button
+                  onClick={() => setShowNote(true)}
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+                >
+                  <MessageSquarePlus size={13} />
+                  Adicionar nota
+                </button>
+              )}
+              {!(activity.photos && activity.photos.length > 0) && !showPhoto && (
+                <button
+                  onClick={() => setShowPhoto(true)}
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+                >
+                  <Camera size={13} />
+                  Adicionar foto
+                </button>
+              )}
+              {showPhoto && !(activity.photos && activity.photos.length > 0) && (
+                <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors py-1">
+                  <Camera size={13} />
+                  Escolher foto
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                </label>
+              )}
+            </div>
+
+            {/* Note textarea (below actions) */}
+            {(activity.comments || showNote) && (
               <Textarea
                 placeholder="Notas ou comentários..."
                 value={activity.comments || ""}
@@ -160,18 +193,10 @@ export function ActivityCard({ activity, participants = [], onUpdate, onDelete }
                 className="text-sm min-h-[60px] resize-none"
                 autoFocus={showNote && !activity.comments}
               />
-            ) : (
-              <button
-                onClick={() => setShowNote(true)}
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <MessageSquarePlus size={13} />
-                Adicionar nota
-              </button>
             )}
 
-            {/* Show existing photos or "Add photo" button */}
-            {activity.photos && activity.photos.length > 0 ? (
+            {/* Photos (below actions) */}
+            {activity.photos && activity.photos.length > 0 && (
               <div>
                 <div className="flex gap-2 overflow-x-auto">
                   {activity.photos.map((p, i) => (
@@ -184,20 +209,6 @@ export function ActivityCard({ activity, participants = [], onUpdate, onDelete }
                   <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                 </label>
               </div>
-            ) : showPhoto ? (
-              <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
-                <Camera size={13} />
-                Escolher foto
-                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-              </label>
-            ) : (
-              <button
-                onClick={() => setShowPhoto(true)}
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Camera size={13} />
-                Adicionar foto
-              </button>
             )}
           </div>
         )}
