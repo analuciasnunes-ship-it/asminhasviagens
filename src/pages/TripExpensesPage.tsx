@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTrips } from "@/hooks/useTrips";
 import { ArrowLeft, Wallet, ArrowRight, Trash2, Pencil, Plane, Home, UtensilsCrossed, MapPin, ShoppingCart, Receipt, PieChart } from "lucide-react";
 import { Trip, Payment } from "@/types/trip";
-import { calculateBalances, calculateSettlements } from "@/lib/expenseUtils";
+import { calculateBalances, calculateSettlements, calculateTripTotals } from "@/lib/expenseUtils";
 import { AddPaymentDialog } from "@/components/AddPaymentDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useState, useMemo } from "react";
