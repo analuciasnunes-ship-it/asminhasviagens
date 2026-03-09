@@ -28,6 +28,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
   const [description, setDescription] = useState("");
   const [cost, setCost] = useState("");
   const [link, setLink] = useState("");
+  const [location, setLocation] = useState("");
   const [duration, setDuration] = useState<DurationLabel | "">("");
   const [paidBy, setPaidBy] = useState("");
   const [sharedBy, setSharedBy] = useState<string[]>([]);
