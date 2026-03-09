@@ -38,7 +38,10 @@ export function DayOverviewCard({ day, tripId, onUpdateTitle, onClick }: Props) 
       {/* Header row */}
       <div className="flex items-center gap-3">
         {/* Day number badge */}
-        <span className="shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+        <span
+          className="shrink-0 flex items-center justify-center w-9 h-9 rounded-full text-white text-sm font-bold"
+          style={{ background: getDayColor(day.dayNumber) }}
+        >
           {day.dayNumber}
         </span>
 
