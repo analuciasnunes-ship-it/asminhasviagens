@@ -2,6 +2,7 @@ import { DayPlan } from "@/types/trip";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { ChevronRight, MapPin, Pencil } from "lucide-react";
+import { getDayColor } from "@/lib/dayColors";
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 
