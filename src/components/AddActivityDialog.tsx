@@ -41,6 +41,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       setDescription(editActivity.description || "");
       setCost(editActivity.cost != null ? editActivity.cost.toString() : "");
       setLink(editActivity.link || "");
+      setLocation(editActivity.location || "");
       setDuration(editActivity.estimatedDuration || "");
       setPaidBy(editActivity.paidBy || "");
       setSharedBy(editActivity.sharedBy || participants.map((p) => p.id));
@@ -51,6 +52,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       setDescription("");
       setCost("");
       setLink("");
+      setLocation("");
       setDuration("");
       setPaidBy("");
       setSharedBy(participants.map((p) => p.id));
