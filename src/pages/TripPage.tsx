@@ -4,8 +4,9 @@ import { DayOverviewCard } from "@/components/DayOverviewCard";
 import { TripDetails } from "@/components/TripDetails";
 import { TripExpenseSummaryCard } from "@/components/TripExpenseSummaryCard";
 import { TodayView } from "@/components/TodayView";
+import { TripMapView } from "@/components/TripMapView";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Trash2, Calendar, Users, MapPin, Clock } from "lucide-react";
+import { ArrowLeft, Trash2, Calendar, Users, MapPin, Clock, Map } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Flight, Accommodation, RentalCar, OtherDetail, Participant, Activity } from "@/types/trip";
@@ -146,6 +147,9 @@ const TripPage = () => {
             <TabsTrigger value="today" className="flex-1 gap-1.5">
               <Clock size={14} /> Hoje
             </TabsTrigger>
+            <TabsTrigger value="map" className="flex-1 gap-1.5">
+              <Map size={14} /> Mapa
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="trip">
@@ -237,6 +241,13 @@ const TripPage = () => {
                   ),
                 });
               }}
+            />
+          </TabsContent>
+
+          <TabsContent value="map">
+            <TripMapView
+              trip={trip}
+              onNavigateToDay={(dayId) => navigate(`/trip/${trip.id}/day/${dayId}`)}
             />
           </TabsContent>
         </Tabs>
