@@ -138,17 +138,17 @@ const TripPage = () => {
           </div>
         )}
 
-        <Tabs defaultValue="planning" className="w-full">
+        <Tabs defaultValue="trip" className="w-full">
           <TabsList className="w-full mb-4">
-            <TabsTrigger value="planning" className="flex-1 gap-1.5">
-              <MapPin size={14} /> Planeamento
+            <TabsTrigger value="trip" className="flex-1 gap-1.5">
+              <MapPin size={14} /> Viagem
             </TabsTrigger>
             <TabsTrigger value="today" className="flex-1 gap-1.5">
               <Clock size={14} /> Hoje
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="planning">
+          <TabsContent value="trip">
             {/* Participants */}
             <div className="mb-6 space-y-3">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
