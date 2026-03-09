@@ -120,24 +120,14 @@ export function ActivityCard({ activity, participants = [], onUpdate, onDelete }
               </a>
             )}
             {activity.location && (
-              <div className="flex items-center gap-3 mt-1">
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.location)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                >
-                  <MapPin size={11} /> Abrir no Maps
-                </a>
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(activity.location)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                >
-                  <Compass size={11} /> Navegar
-                </a>
-              </div>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.location)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+              >
+                <MapPin size={11} /> Abrir no Maps
+              </a>
             )}
             {/* Expense split info */}
             {payer && activity.cost != null && activity.cost > 0 && (
