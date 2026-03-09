@@ -186,16 +186,16 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
 
       {/* Activity list below map */}
       <div className="space-y-1.5">
-        {filteredActivities.map(({ activity, dayNumber }) => (
+        {filteredActivities.map(({ activity, dayNumber, indexInDay }) => (
           <div
             key={activity.id}
             className="flex items-center gap-3 p-2.5 rounded-lg bg-card border border-border"
           >
             <div
               className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
-              style={{ background: getMarkerColor(dayNumber) }}
+              style={{ background: getDayColor(dayNumber) }}
             >
-              {dayNumber}
+              {indexInDay}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{activity.title}</p>
