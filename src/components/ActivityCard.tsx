@@ -1,5 +1,5 @@
 import { Activity, Participant } from "@/types/trip";
-import { Camera, Check, Clock, ExternalLink, Lock, LockOpen, MapPin, MessageSquarePlus, Compass, Pencil, Star, Trash2 } from "lucide-react";
+import { Camera, Check, Clock, ExternalLink, Lock, LockOpen, MapPin, MessageSquarePlus, Pencil, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { AddActivityDialog } from "./AddActivityDialog";
