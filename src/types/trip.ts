@@ -38,6 +38,8 @@ export interface Activity {
   sharedBy?: string[];
   link?: string;
   location?: string;
+  lat?: number;
+  lng?: number;
   status: "planeado" | "visitado";
   photos?: string[];
   rating?: number;

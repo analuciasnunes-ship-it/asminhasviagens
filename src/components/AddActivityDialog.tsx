@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus } from "lucide-react";
 import { Activity, Participant, DURATION_OPTIONS, DurationLabel, ExpensePayment } from "@/types/trip";
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
+import { geocodeLocation } from "@/lib/geocode";
 
 interface Props {
   onAdd: (activity: Activity) => void;
@@ -67,8 +68,22 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
     setSharedBy((prev) => prev.includes(pid) ? prev.filter((x) => x !== pid) : [...prev, pid]);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title) return;
+
+    let lat = editActivity?.lat;
+    let lng = editActivity?.lng;
+
+    // Geocode if location changed or coords missing
+    const locationValue = location.trim();
+    if (locationValue && (locationValue !== editActivity?.location || !lat || !lng)) {
+      const coords = await geocodeLocation(locationValue);
+      if (coords) {
+        lat = coords[0];
+        lng = coords[1];
+      }
+    }
+
     onAdd({
       id: editActivity?.id || crypto.randomUUID(),
       title,
@@ -78,7 +93,9 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       paidBy: paidBy || undefined,
       sharedBy: sharedBy.length > 0 ? sharedBy : undefined,
       link: link || undefined,
-      location: location || undefined,
+      location: locationValue || undefined,
+      lat,
+      lng,
       estimatedDuration: duration || undefined,
       status: editActivity?.status || "planeado",
       photos: editActivity?.photos || [],
