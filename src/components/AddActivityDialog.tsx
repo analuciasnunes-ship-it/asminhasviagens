@@ -78,6 +78,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       paidBy: paidBy || undefined,
       sharedBy: sharedBy.length > 0 ? sharedBy : undefined,
       link: link || undefined,
+      location: location || undefined,
       estimatedDuration: duration || undefined,
       status: editActivity?.status || "planeado",
       photos: editActivity?.photos || [],
