@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { Trip, Activity } from "@/types/trip";
 import { MapPin, Clock } from "lucide-react";
 import { geocodeLocation } from "@/lib/geocode";
+import { getDayColor } from "@/lib/dayColors";
 
 // Fix default marker icons for Leaflet in bundled environments
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -17,6 +18,7 @@ interface MarkerActivity {
   activity: Activity;
   dayNumber: number;
   dayId: string;
+  indexInDay: number;
 }
 
 interface Props {
