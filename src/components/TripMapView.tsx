@@ -84,7 +84,7 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
       const bounds: L.LatLngTuple[] = [];
 
       await Promise.all(
-        filteredActivities.map(async ({ activity, dayNumber }) => {
+        filteredActivities.map(async ({ activity, dayNumber, indexInDay }) => {
           // Use stored coordinates first, fallback to runtime geocoding
           let coords: [number, number] | null = null;
           if (activity.lat != null && activity.lng != null) {
@@ -96,10 +96,10 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
           if (!coords || !markersLayer.current) return;
           bounds.push(coords);
 
-          const markerColor = getMarkerColor(dayNumber);
+          const markerColor = getDayColor(dayNumber);
           const icon = L.divIcon({
             className: "custom-marker",
-            html: `<div style="background:${markerColor};color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">${dayNumber}</div>`,
+            html: `<div style="background:${markerColor};color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">${indexInDay}</div>`,
             iconSize: [28, 28],
             iconAnchor: [14, 14],
           });
