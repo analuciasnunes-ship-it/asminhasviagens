@@ -242,6 +242,13 @@ const TripPage = () => {
               }}
             />
           </TabsContent>
+
+          <TabsContent value="map">
+            <TripMapView
+              trip={trip}
+              onNavigateToDay={(dayId) => navigate(`/trip/${trip.id}/day/${dayId}`)}
+            />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
