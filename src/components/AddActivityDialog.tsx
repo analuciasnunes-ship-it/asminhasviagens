@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus } from "lucide-react";
 import { Activity, Participant, DURATION_OPTIONS, DurationLabel, ExpensePayment } from "@/types/trip";
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
+import { geocodeLocation } from "@/lib/geocode";
 
 interface Props {
   onAdd: (activity: Activity) => void;
