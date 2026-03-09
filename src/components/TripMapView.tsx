@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Trip, Activity } from "@/types/trip";
-import { MapPin, Navigation, Clock } from "lucide-react";
+import { MapPin, Clock } from "lucide-react";
+import { geocodeLocation } from "@/lib/geocode";
 
 // Fix default marker icons for Leaflet in bundled environments
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -16,30 +17,6 @@ interface MarkerActivity {
   activity: Activity;
   dayNumber: number;
   dayId: string;
-}
-
-// Simple in-memory geocode cache
-const geocodeCache: Record<string, [number, number] | null> = {};
-
-async function geocodeLocation(location: string): Promise<[number, number] | null> {
-  if (geocodeCache[location] !== undefined) return geocodeCache[location];
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`,
-      { headers: { "User-Agent": "TripPlannerApp/1.0" } }
-    );
-    const data = await res.json();
-    if (data.length > 0) {
-      const coords: [number, number] = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-      geocodeCache[location] = coords;
-      return coords;
-    }
-    geocodeCache[location] = null;
-    return null;
-  } catch {
-    geocodeCache[location] = null;
-    return null;
-  }
 }
 
 interface Props {
@@ -103,8 +80,15 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
       const bounds: L.LatLngTuple[] = [];
 
       await Promise.all(
-        filteredActivities.map(async ({ activity, dayNumber, dayId }) => {
-          const coords = await geocodeLocation(activity.location!);
+        filteredActivities.map(async ({ activity, dayNumber }) => {
+          // Use stored coordinates first, fallback to runtime geocoding
+          let coords: [number, number] | null = null;
+          if (activity.lat != null && activity.lng != null) {
+            coords = [activity.lat, activity.lng];
+          } else if (activity.location) {
+            coords = await geocodeLocation(activity.location);
+          }
+
           if (!coords || !markersLayer.current) return;
           bounds.push(coords);
 
@@ -122,7 +106,6 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
             <div style="min-width:180px;font-family:system-ui,sans-serif;">
               <p style="font-weight:600;font-size:14px;margin:0 0 4px;">${activity.title}</p>
               <p style="color:#666;font-size:12px;margin:0 0 8px;">Dia ${dayNumber}${activity.time ? ` — ${activity.time}` : ""}</p>
-              ${activity.description ? `<p style="color:#888;font-size:11px;margin:0 0 8px;">${activity.description}</p>` : ""}
               <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.location!)}" 
                  target="_blank" rel="noopener noreferrer"
                  style="display:inline-flex;align-items:center;gap:4px;background:hsl(var(--primary));color:white;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;">
@@ -147,7 +130,7 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <MapPin size={48} className="text-muted-foreground/30 mb-4" />
-        <p className="text-muted-foreground text-sm">Nenhuma atividade com localização</p>
+        <p className="text-muted-foreground text-sm">Nenhuma localização para mostrar no mapa.</p>
         <p className="text-muted-foreground/70 text-xs mt-1">
           Adiciona uma localização às atividades para as ver no mapa
         </p>
