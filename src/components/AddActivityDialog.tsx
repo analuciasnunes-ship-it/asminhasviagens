@@ -28,6 +28,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
   const [description, setDescription] = useState("");
   const [cost, setCost] = useState("");
   const [link, setLink] = useState("");
+  const [location, setLocation] = useState("");
   const [duration, setDuration] = useState<DurationLabel | "">("");
   const [paidBy, setPaidBy] = useState("");
   const [sharedBy, setSharedBy] = useState<string[]>([]);
@@ -40,6 +41,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       setDescription(editActivity.description || "");
       setCost(editActivity.cost != null ? editActivity.cost.toString() : "");
       setLink(editActivity.link || "");
+      setLocation(editActivity.location || "");
       setDuration(editActivity.estimatedDuration || "");
       setPaidBy(editActivity.paidBy || "");
       setSharedBy(editActivity.sharedBy || participants.map((p) => p.id));
@@ -50,6 +52,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       setDescription("");
       setCost("");
       setLink("");
+      setLocation("");
       setDuration("");
       setPaidBy("");
       setSharedBy(participants.map((p) => p.id));
@@ -75,6 +78,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       paidBy: paidBy || undefined,
       sharedBy: sharedBy.length > 0 ? sharedBy : undefined,
       link: link || undefined,
+      location: location || undefined,
       estimatedDuration: duration || undefined,
       status: editActivity?.status || "planeado",
       photos: editActivity?.photos || [],
@@ -205,6 +209,10 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
           <div className="space-y-2">
             <Label>Link (opcional)</Label>
             <Input placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>Localização (opcional)</Label>
+            <Input placeholder="Ex: Torre de Belém, Lisboa" value={location} onChange={(e) => setLocation(e.target.value)} />
           </div>
           <Button onClick={handleSubmit} className="w-full" disabled={!title}>
             {editActivity ? "Guardar" : "Adicionar"}

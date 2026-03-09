@@ -37,6 +37,7 @@ export interface Activity {
   paidBy?: string;
   sharedBy?: string[];
   link?: string;
+  location?: string;
   status: "planeado" | "visitado";
   photos?: string[];
   rating?: number;
