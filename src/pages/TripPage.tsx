@@ -5,7 +5,7 @@ import { TripDetails } from "@/components/TripDetails";
 import { TripExpenseSummaryCard } from "@/components/TripExpenseSummaryCard";
 import { TodayView } from "@/components/TodayView";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Trash2, Calendar, Users, MapPin, Clock } from "lucide-react";
+import { ArrowLeft, Trash2, Calendar, Users, MapPin, Clock, Map } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Flight, Accommodation, RentalCar, OtherDetail, Participant, Activity } from "@/types/trip";
