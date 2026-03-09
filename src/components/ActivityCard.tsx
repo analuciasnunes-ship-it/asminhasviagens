@@ -135,7 +135,7 @@ export function ActivityCard({ activity, participants = [], onUpdate, onDelete }
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
                 >
-                  <Navigation size={11} /> Navegar
+                  <Compass size={11} /> Navegar
                 </a>
               </div>
             )}
