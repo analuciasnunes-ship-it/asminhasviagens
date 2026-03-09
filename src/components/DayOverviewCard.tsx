@@ -2,6 +2,7 @@ import { DayPlan } from "@/types/trip";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { ChevronRight, MapPin, Pencil } from "lucide-react";
+import { getDayColor } from "@/lib/dayColors";
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 
@@ -37,7 +38,10 @@ export function DayOverviewCard({ day, tripId, onUpdateTitle, onClick }: Props) 
       {/* Header row */}
       <div className="flex items-center gap-3">
         {/* Day number badge */}
-        <span className="shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+        <span
+          className="shrink-0 flex items-center justify-center w-9 h-9 rounded-full text-white text-sm font-bold"
+          style={{ background: getDayColor(day.dayNumber) }}
+        >
           {day.dayNumber}
         </span>
 

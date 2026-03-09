@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { Trip, Activity } from "@/types/trip";
 import { MapPin, Clock } from "lucide-react";
 import { geocodeLocation } from "@/lib/geocode";
+import { getDayColor } from "@/lib/dayColors";
 
 // Fix default marker icons for Leaflet in bundled environments
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -17,6 +18,7 @@ interface MarkerActivity {
   activity: Activity;
   dayNumber: number;
   dayId: string;
+  indexInDay: number;
 }
 
 interface Props {
@@ -35,9 +37,11 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
   const allMarkerActivities = useMemo<MarkerActivity[]>(() => {
     const items: MarkerActivity[] = [];
     trip.days.forEach((day) => {
+      let idx = 0;
       day.activities.forEach((a) => {
         if (a.location) {
-          items.push({ activity: a, dayNumber: day.dayNumber, dayId: day.id });
+          idx++;
+          items.push({ activity: a, dayNumber: day.dayNumber, dayId: day.id, indexInDay: idx });
         }
       });
     });
@@ -80,7 +84,7 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
       const bounds: L.LatLngTuple[] = [];
 
       await Promise.all(
-        filteredActivities.map(async ({ activity, dayNumber }) => {
+        filteredActivities.map(async ({ activity, dayNumber, indexInDay }) => {
           // Use stored coordinates first, fallback to runtime geocoding
           let coords: [number, number] | null = null;
           if (activity.lat != null && activity.lng != null) {
@@ -92,10 +96,10 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
           if (!coords || !markersLayer.current) return;
           bounds.push(coords);
 
-          const markerColor = getMarkerColor(dayNumber);
+          const markerColor = getDayColor(dayNumber);
           const icon = L.divIcon({
             className: "custom-marker",
-            html: `<div style="background:${markerColor};color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">${dayNumber}</div>`,
+            html: `<div style="background:${markerColor};color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">${indexInDay}</div>`,
             iconSize: [28, 28],
             iconAnchor: [14, 14],
           });
@@ -182,16 +186,16 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
 
       {/* Activity list below map */}
       <div className="space-y-1.5">
-        {filteredActivities.map(({ activity, dayNumber }) => (
+        {filteredActivities.map(({ activity, dayNumber, indexInDay }) => (
           <div
             key={activity.id}
             className="flex items-center gap-3 p-2.5 rounded-lg bg-card border border-border"
           >
             <div
               className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
-              style={{ background: getMarkerColor(dayNumber) }}
+              style={{ background: getDayColor(dayNumber) }}
             >
-              {dayNumber}
+              {indexInDay}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{activity.title}</p>
@@ -209,10 +213,3 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
   );
 }
 
-function getMarkerColor(dayNumber: number): string {
-  const colors = [
-    "#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6",
-    "#ec4899", "#06b6d4", "#f97316", "#6366f1", "#14b8a6",
-  ];
-  return colors[(dayNumber - 1) % colors.length];
-}
