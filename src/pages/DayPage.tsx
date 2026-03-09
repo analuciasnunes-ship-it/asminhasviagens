@@ -3,9 +3,11 @@ import { useTrips } from "@/hooks/useTrips";
 import { AddDayItemMenu } from "@/components/AddDayItemMenu";
 import { ActivityTimeline } from "@/components/ActivityTimeline";
 import { TripDetails } from "@/components/TripDetails";
+import { DayMapView } from "@/components/DayMapView";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Activity, Flight, Accommodation, RentalCar, OtherDetail, Meal, Expense, DURATION_OPTIONS } from "@/types/trip";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, List, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 
