@@ -37,9 +37,11 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
   const allMarkerActivities = useMemo<MarkerActivity[]>(() => {
     const items: MarkerActivity[] = [];
     trip.days.forEach((day) => {
+      let idx = 0;
       day.activities.forEach((a) => {
         if (a.location) {
-          items.push({ activity: a, dayNumber: day.dayNumber, dayId: day.id });
+          idx++;
+          items.push({ activity: a, dayNumber: day.dayNumber, dayId: day.id, indexInDay: idx });
         }
       });
     });
