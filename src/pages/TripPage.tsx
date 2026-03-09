@@ -146,6 +146,9 @@ const TripPage = () => {
             <TabsTrigger value="today" className="flex-1 gap-1.5">
               <Clock size={14} /> Hoje
             </TabsTrigger>
+            <TabsTrigger value="map" className="flex-1 gap-1.5">
+              <Map size={14} /> Mapa
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="trip">
