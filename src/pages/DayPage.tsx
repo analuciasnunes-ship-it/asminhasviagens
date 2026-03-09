@@ -141,30 +141,55 @@ const DayPage = () => {
           compact
         />
 
-        {/* Activity Timeline */}
-        <ActivityTimeline
-          activities={day.activities}
-          meals={dayMeals}
-          expenses={dayExpenses}
-          participants={participants}
-          onUpdate={handleUpdateActivity}
-          onDelete={handleDeleteActivity}
-          onReorder={(reordered) => updateDay({ activities: reordered })}
-          onUpdateMeal={handleUpdateMeal}
-          onDeleteMeal={handleDeleteMeal}
-          onUpdateExpense={handleUpdateExpense}
-          onDeleteExpense={handleDeleteExpense}
-        />
+        {/* Tabs for Timeline / Map */}
+        <Tabs defaultValue="timeline" className="mt-6">
+          <TabsList className="w-full">
+            <TabsTrigger value="timeline" className="flex-1 gap-1.5">
+              <List size={14} />
+              Timeline
+            </TabsTrigger>
+            <TabsTrigger value="map" className="flex-1 gap-1.5">
+              <MapPin size={14} />
+              Mapa
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Add item menu */}
-        <div className="pl-9 mt-2">
-          <AddDayItemMenu
-            participants={participants}
-            onAddActivity={handleAddActivity}
-            onAddMeal={handleAddMeal}
-            onAddExpense={handleAddExpense}
-          />
-        </div>
+          <TabsContent value="timeline" className="mt-4">
+            {/* Activity Timeline */}
+            <ActivityTimeline
+              activities={day.activities}
+              meals={dayMeals}
+              expenses={dayExpenses}
+              participants={participants}
+              onUpdate={handleUpdateActivity}
+              onDelete={handleDeleteActivity}
+              onReorder={(reordered) => updateDay({ activities: reordered })}
+              onUpdateMeal={handleUpdateMeal}
+              onDeleteMeal={handleDeleteMeal}
+              onUpdateExpense={handleUpdateExpense}
+              onDeleteExpense={handleDeleteExpense}
+            />
+
+            {/* Add item menu */}
+            <div className="pl-9 mt-2">
+              <AddDayItemMenu
+                participants={participants}
+                onAddActivity={handleAddActivity}
+                onAddMeal={handleAddMeal}
+                onAddExpense={handleAddExpense}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="map" className="mt-4">
+            <DayMapView
+              activities={day.activities}
+              participants={participants}
+              onUpdate={handleUpdateActivity}
+              onDelete={handleDeleteActivity}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

@@ -119,6 +119,16 @@ export function ActivityCard({ activity, participants = [], onUpdate, onDelete }
                 <ExternalLink size={11} /> Ver link
               </a>
             )}
+            {activity.location && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.location)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary mt-1 hover:underline"
+              >
+                <MapPin size={11} /> Abrir no Google Maps
+              </a>
+            )}
             {/* Expense split info */}
             {payer && activity.cost != null && activity.cost > 0 && (
               <div className="mt-1.5 text-xs text-muted-foreground space-y-0.5">

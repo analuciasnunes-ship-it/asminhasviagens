@@ -210,6 +210,10 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
             <Label>Link (opcional)</Label>
             <Input placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} />
           </div>
+          <div className="space-y-2">
+            <Label>Localização (opcional)</Label>
+            <Input placeholder="Ex: Torre de Belém, Lisboa" value={location} onChange={(e) => setLocation(e.target.value)} />
+          </div>
           <Button onClick={handleSubmit} className="w-full" disabled={!title}>
             {editActivity ? "Guardar" : "Adicionar"}
           </Button>
