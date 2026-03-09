@@ -1,8 +1,8 @@
 import { DayPlan } from "@/types/trip";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
-import { ChevronRight, MapPin } from "lucide-react";
-import { useState } from "react";
+import { ChevronRight, MapPin, Pencil } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 
 interface Props {
@@ -15,9 +15,16 @@ interface Props {
 export function DayOverviewCard({ day, tripId, onUpdateTitle, onClick }: Props) {
   const [editing, setEditing] = useState(false);
   const [titleDraft, setTitleDraft] = useState(day.title || "");
+  const inputRef = useRef<HTMLInputElement>(null);
   const dateLabel = format(new Date(day.date), "EEE, d MMM", { locale: pt });
   const activityCount = day.activities.length;
   const dayCost = day.activities.reduce((s, a) => s + (a.cost || 0), 0);
+
+  useEffect(() => {
+    if (editing) {
+      setTimeout(() => inputRef.current?.focus(), 0);
+    }
+  }, [editing]);
 
   const handleSaveTitle = () => {
     onUpdateTitle(day.id, titleDraft.trim());
@@ -31,14 +38,43 @@ export function DayOverviewCard({ day, tripId, onUpdateTitle, onClick }: Props) 
     >
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-center gap-2">
             <h3 className="text-base font-semibold text-foreground">
               Dia {day.dayNumber}
             </h3>
-            {day.title && !editing && (
-              <span className="text-sm text-muted-foreground truncate">
-                – {day.title}
-              </span>
+            {editing ? (
+              <div
+                className="flex-1 min-w-0"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Input
+                  ref={inputRef}
+                  placeholder="Ex: Montmartre"
+                  value={titleDraft}
+                  onChange={(e) => setTitleDraft(e.target.value)}
+                  onBlur={handleSaveTitle}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveTitle();
+                    if (e.key === "Escape") { setTitleDraft(day.title || ""); setEditing(false); }
+                  }}
+                  className="text-sm h-7 py-0"
+                />
+              </div>
+            ) : (
+              <>
+                {day.title && (
+                  <span className="text-sm text-muted-foreground truncate">
+                    – {day.title}
+                  </span>
+                )}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setEditing(true); }}
+                  className="shrink-0 p-1 rounded-md text-muted-foreground/50 hover:text-primary hover:bg-primary/10 transition-colors"
+                  aria-label="Editar título"
+                >
+                  <Pencil size={13} />
+                </button>
+              </>
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5 capitalize">{dateLabel}</p>
@@ -56,35 +92,6 @@ export function DayOverviewCard({ day, tripId, onUpdateTitle, onClick }: Props) 
         </div>
         <ChevronRight size={18} className="text-muted-foreground/40 shrink-0" />
       </div>
-
-      {editing && (
-        <div
-          className="mt-3"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Input
-            autoFocus
-            placeholder="Ex: Montmartre"
-            value={titleDraft}
-            onChange={(e) => setTitleDraft(e.target.value)}
-            onBlur={handleSaveTitle}
-            onKeyDown={(e) => e.key === "Enter" && handleSaveTitle()}
-            className="text-sm h-8"
-          />
-        </div>
-      )}
-
-      {!editing && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setEditing(true);
-          }}
-          className="mt-2 text-xs text-primary/60 hover:text-primary transition-colors"
-        >
-          {day.title ? "Editar título" : "+ Adicionar título"}
-        </button>
-      )}
     </button>
   );
 }
