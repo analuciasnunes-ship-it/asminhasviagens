@@ -119,22 +119,15 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
           const marker = L.marker(coords, { icon }).addTo(markersLayer.current!);
 
           const popupContent = `
-            <div style="min-width:200px;font-family:system-ui,sans-serif;">
+            <div style="min-width:180px;font-family:system-ui,sans-serif;">
               <p style="font-weight:600;font-size:14px;margin:0 0 4px;">${activity.title}</p>
               <p style="color:#666;font-size:12px;margin:0 0 8px;">Dia ${dayNumber}${activity.time ? ` — ${activity.time}` : ""}</p>
               ${activity.description ? `<p style="color:#888;font-size:11px;margin:0 0 8px;">${activity.description}</p>` : ""}
-              <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.location!)}" 
-                   target="_blank" rel="noopener noreferrer"
-                   style="display:inline-flex;align-items:center;gap:4px;background:#f4f4f5;color:#333;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;border:1px solid #e4e4e7;">
-                  📍 Abrir no Maps
-                </a>
-                <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(activity.location!)}" 
-                   target="_blank" rel="noopener noreferrer"
-                   style="display:inline-flex;align-items:center;gap:4px;background:#3b82f6;color:white;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;">
-                  🧭 Navegar
-                </a>
-              </div>
+              <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.location!)}" 
+                 target="_blank" rel="noopener noreferrer"
+                 style="display:inline-flex;align-items:center;gap:4px;background:hsl(var(--primary));color:white;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;">
+                📍 Abrir no Maps
+              </a>
             </div>
           `;
           marker.bindPopup(popupContent);
