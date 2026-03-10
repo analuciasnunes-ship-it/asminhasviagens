@@ -23,7 +23,16 @@ const AuthPage = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user) navigate(redirectTo, { replace: true });
+    if (user) {
+      // Check for stored redirect (from OAuth flow)
+      const storedRedirect = localStorage.getItem("auth_redirect");
+      if (storedRedirect) {
+        localStorage.removeItem("auth_redirect");
+        navigate(storedRedirect, { replace: true });
+      } else {
+        navigate(redirectTo, { replace: true });
+      }
+    }
   }, [user, navigate, redirectTo]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
