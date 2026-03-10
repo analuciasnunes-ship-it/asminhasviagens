@@ -504,6 +504,13 @@ async function syncExpenses(day: DayPlan) {
         notes: e.notes || null,
       }))
     );
+
+    // Sync expense payments for expenses
+    for (const e of dayExpenses) {
+      if (e.expensePayments) {
+        await syncExpensePayments("expense", e.id, e.expensePayments);
+      }
+    }
   }
 }
 
