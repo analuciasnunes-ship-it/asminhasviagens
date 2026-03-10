@@ -56,6 +56,8 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       setPaidBy(editActivity.paidBy || "");
       setSharedBy(editActivity.sharedBy || participants.map((p) => p.id));
       setExpensePayments(editActivity.expensePayments || []);
+      setSelectedLat(editActivity.lat);
+      setSelectedLng(editActivity.lng);
     } else if (open && !editActivity) {
       setTitle("");
       setTime("");
@@ -67,6 +69,8 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       setPaidBy("");
       setSharedBy(participants.map((p) => p.id));
       setExpensePayments([]);
+      setSelectedLat(undefined);
+      setSelectedLng(undefined);
     }
   }, [open, editActivity]);
 
