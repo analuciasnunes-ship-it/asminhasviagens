@@ -17,8 +17,9 @@ interface CategoryData {
   icon: React.ReactNode;
 }
 
-function useExpenseCategories(trip: Trip): CategoryData[] {
+function useExpenseCategories(trip: Trip | undefined): CategoryData[] {
   return useMemo(() => {
+    if (!trip) return [];
     // Flights
     const flightItems = [
       ...(trip.flights || []),
