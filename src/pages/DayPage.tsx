@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useState, useCallback } from "react";
 import { useTrips } from "@/hooks/useTrips";
 import { AddDayItemMenu } from "@/components/AddDayItemMenu";
 import { ActivityTimeline } from "@/components/ActivityTimeline";
@@ -17,6 +18,21 @@ const DayPage = () => {
   const { getTrip, updateTrip } = useTrips();
   const trip = getTrip(id!);
   const day = trip?.days.find((d) => d.id === dayId);
+
+  const [activeTab, setActiveTab] = useState("timeline");
+  const [highlightedActivityId, setHighlightedActivityId] = useState<string | null>(null);
+
+  const handleMarkerClick = useCallback((activityId: string) => {
+    setActiveTab("timeline");
+    setHighlightedActivityId(activityId);
+    setTimeout(() => {
+      const el = document.getElementById(`activity-${activityId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => setHighlightedActivityId(null), 2000);
+      }
+    }, 100);
+  }, []);
 
   if (!trip || !day) {
     return (
@@ -74,8 +90,6 @@ const DayPage = () => {
   const handleUpdateAccommodation = (a: Accommodation) => updateDay({ accommodations: dayAccommodations.map((x) => x.id === a.id ? a : x) });
   const handleUpdateCar = (c: RentalCar) => updateDay({ rentalCars: dayRentalCars.map((x) => x.id === c.id ? c : x) });
   const handleUpdateOther = (o: OtherDetail) => updateDay({ otherDetails: dayOtherDetails.map((x) => x.id === o.id ? o : x) });
-
-
 
 
   return (
@@ -142,7 +156,7 @@ const DayPage = () => {
         />
 
         {/* Tabs for Timeline / Map */}
-        <Tabs defaultValue="timeline" className="mt-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
           <TabsList className="w-full">
             <TabsTrigger value="timeline" className="flex-1 gap-1.5">
               <List size={14} />
@@ -155,7 +169,6 @@ const DayPage = () => {
           </TabsList>
 
           <TabsContent value="timeline" className="mt-4">
-            {/* Activity Timeline */}
             <ActivityTimeline
               activities={day.activities}
               meals={dayMeals}
@@ -168,9 +181,9 @@ const DayPage = () => {
               onDeleteMeal={handleDeleteMeal}
               onUpdateExpense={handleUpdateExpense}
               onDeleteExpense={handleDeleteExpense}
+              highlightedActivityId={highlightedActivityId}
             />
 
-            {/* Add item menu */}
             <div className="pl-9 mt-2">
               <AddDayItemMenu
                 participants={participants}
@@ -187,6 +200,7 @@ const DayPage = () => {
               participants={participants}
               onUpdate={handleUpdateActivity}
               onDelete={handleDeleteActivity}
+              onMarkerClick={handleMarkerClick}
             />
           </TabsContent>
         </Tabs>
