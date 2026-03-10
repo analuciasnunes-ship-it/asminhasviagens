@@ -540,6 +540,13 @@ async function syncFlights(trip: Trip) {
         shared_by: f.sharedBy || [],
       }))
     );
+
+    // Sync expense payments for flights
+    for (const f of trip.flights) {
+      if (f.expensePayments) {
+        await syncExpensePayments("flight", f.id, f.expensePayments);
+      }
+    }
   }
 }
 
@@ -565,6 +572,13 @@ async function syncAccommodations(trip: Trip) {
         shared_by: a.sharedBy || [],
       }))
     );
+
+    // Sync expense payments for accommodations
+    for (const a of trip.accommodations) {
+      if (a.expensePayments) {
+        await syncExpensePayments("accommodation", a.id, a.expensePayments);
+      }
+    }
   }
 }
 
@@ -589,6 +603,13 @@ async function syncRentalCars(trip: Trip) {
         shared_by: r.sharedBy || [],
       }))
     );
+
+    // Sync expense payments for rental cars
+    for (const r of trip.rentalCars) {
+      if (r.expensePayments) {
+        await syncExpensePayments("rental_car", r.id, r.expensePayments);
+      }
+    }
   }
 }
 
@@ -613,6 +634,13 @@ async function syncOtherDetails(trip: Trip) {
         shared_by: o.sharedBy || [],
       }))
     );
+
+    // Sync expense payments for other details
+    for (const o of details) {
+      if (o.expensePayments) {
+        await syncExpensePayments("other_detail", o.id, o.expensePayments);
+      }
+    }
   }
 }
 
