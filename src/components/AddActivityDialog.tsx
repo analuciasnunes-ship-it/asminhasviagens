@@ -84,12 +84,12 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
   const handleSubmit = async () => {
     if (!title) return;
 
-    let lat = editActivity?.lat;
-    let lng = editActivity?.lng;
+    let lat = selectedLat ?? editActivity?.lat;
+    let lng = selectedLng ?? editActivity?.lng;
 
-    // Geocode if location changed or coords missing
+    // Geocode only if location changed and no coords from autocomplete
     const locationValue = location.trim();
-    if (locationValue && (locationValue !== editActivity?.location || !lat || !lng)) {
+    if (locationValue && !lat && !lng) {
       const coords = await geocodeLocation(locationValue);
       if (coords) {
         lat = coords[0];
