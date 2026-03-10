@@ -121,6 +121,7 @@ const TripPage = () => {
             <ArrowLeft size={16} /> Voltar
           </button>
           <div className="flex items-center gap-2">
+            <ExportTripDialog trip={trip} />
             <EditTripDialog trip={trip} onUpdate={updateTrip} />
             <button
               onClick={handleDelete}
