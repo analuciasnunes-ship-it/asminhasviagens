@@ -183,21 +183,37 @@ const TripPage = () => {
                 {participants.map((p) => (
                   <span key={p.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-xs font-medium text-foreground">
                     {p.name}
+                    {p.status && p.status !== "active" && (
+                      <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                        p.status === "invited" ? "bg-warning/20 text-warning" : "bg-muted text-muted-foreground"
+                      }`}>
+                        {p.status === "invited" ? "convidado" : "pendente"}
+                      </span>
+                    )}
                     <button onClick={() => handleRemoveParticipant(p.id)} className="text-muted-foreground hover:text-destructive transition-colors">×</button>
                   </span>
                 ))}
               </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Adicionar participante"
-                  value={newParticipant}
-                  onChange={(e) => setNewParticipant(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddParticipant())}
-                  className="text-sm h-8"
-                />
-                <Button variant="outline" size="sm" onClick={handleAddParticipant} disabled={!newParticipant.trim()}>
-                  +
-                </Button>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Nome"
+                    value={newParticipantName}
+                    onChange={(e) => setNewParticipantName(e.target.value)}
+                    className="text-sm h-8"
+                  />
+                  <Input
+                    placeholder="Email (opcional)"
+                    type="email"
+                    value={newParticipantEmail}
+                    onChange={(e) => setNewParticipantEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddParticipant())}
+                    className="text-sm h-8"
+                  />
+                  <Button variant="outline" size="sm" onClick={handleAddParticipant} disabled={!newParticipantName.trim()}>
+                    +
+                  </Button>
+                </div>
               </div>
             </div>
 
