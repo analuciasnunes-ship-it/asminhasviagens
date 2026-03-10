@@ -118,7 +118,11 @@ export function TripMapView({ trip, onNavigateToDay, onUpdateActivity, onDeleteA
             <div style="min-width:180px;font-family:system-ui,sans-serif;">
               <p style="font-weight:600;font-size:14px;margin:0 0 4px;">${activity.title}</p>
               <p style="color:#666;font-size:12px;margin:0 0 8px;">Dia ${dayNumber}${activity.time ? ` — ${activity.time}` : ""}</p>
-              <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.location!)}" 
+              <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                activity.lat != null && activity.lng != null
+                  ? `${activity.lat},${activity.lng}`
+                  : (activity.location || '').trim()
+              )}" 
                  target="_blank" rel="noopener noreferrer"
                  style="display:inline-flex;align-items:center;gap:4px;background:hsl(var(--primary));color:white;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;">
                 📍 Abrir no Maps

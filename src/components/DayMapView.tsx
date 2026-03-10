@@ -31,9 +31,13 @@ export function DayMapView({ activities, participants, onUpdate, onDelete, onMar
     );
   }
 
-  const openGoogleMaps = (location: string) => {
+  const openGoogleMaps = (activity: Activity) => {
+    const query = activity.lat != null && activity.lng != null
+      ? `${activity.lat},${activity.lng}`
+      : (activity.location || "").trim();
+    if (!query) return;
     window.open(
-      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`,
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
       "_blank"
     );
   };
