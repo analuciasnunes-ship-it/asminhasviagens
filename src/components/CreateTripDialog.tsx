@@ -18,16 +18,19 @@ export function CreateTripDialog({ onCreateTrip }: Props) {
   const [endDate, setEndDate] = useState("");
   const [coverImage, setCoverImage] = useState("");
   const [participantInput, setParticipantInput] = useState("");
-  const [participantNames, setParticipantNames] = useState<string[]>([]);
+  const [participantEmailInput, setParticipantEmailInput] = useState("");
+  const [participantNames, setParticipantNames] = useState<{ name: string; email?: string }[]>([]);
 
   const addParticipant = () => {
     const name = participantInput.trim();
-    if (name && !participantNames.includes(name)) {
-      setParticipantNames([...participantNames, name]);
+    const email = participantEmailInput.trim().toLowerCase();
+    if (name && !participantNames.some(p => p.name === name)) {
+      setParticipantNames([...participantNames, { name, email: email || undefined }]);
       setParticipantInput("");
+      setParticipantEmailInput("");
     }
   };
-  const removeParticipant = (name: string) => setParticipantNames(participantNames.filter((n) => n !== name));
+  const removeParticipant = (name: string) => setParticipantNames(participantNames.filter((p) => p.name !== name));
 
   const handleSubmit = () => {
     if (!destination || !startDate || !endDate) return;
