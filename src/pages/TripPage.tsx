@@ -10,6 +10,7 @@ import { ArrowLeft, Trash2, Calendar, Users, MapPin, Clock, Map } from "lucide-r
 import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Flight, Accommodation, RentalCar, OtherDetail, Participant, Activity } from "@/types/trip";
+import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,8 @@ const TripPage = () => {
   const { getTrip, updateTrip, deleteTrip } = useTrips();
   const trip = getTrip(id!);
 
-  const [newParticipant, setNewParticipant] = useState("");
+  const [newParticipantName, setNewParticipantName] = useState("");
+  const [newParticipantEmail, setNewParticipantEmail] = useState("");
 
   if (!trip) {
     return (
@@ -59,12 +61,31 @@ const TripPage = () => {
     }
   };
 
-  const handleAddParticipant = () => {
-    const name = newParticipant.trim();
-    if (!name || participants.some((p) => p.name === name)) return;
-    const p: Participant = { id: crypto.randomUUID(), name };
+  const handleAddParticipant = async () => {
+    const name = newParticipantName.trim();
+    const email = newParticipantEmail.trim().toLowerCase();
+    if (!name) return;
+    if (participants.some((p) => p.name === name || (email && p.email === email))) return;
+
+    // Check if email belongs to an existing user
+    let userId: string | null = null;
+    let status: "active" | "invited" = "invited";
+    if (email) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+      if (profile) {
+        userId = profile.id;
+        status = "active";
+      }
+    }
+
+    const p: Participant = { id: crypto.randomUUID(), name, email: email || undefined, status, userId };
     updateTrip({ ...trip, participants: [...participants, p] });
-    setNewParticipant("");
+    setNewParticipantName("");
+    setNewParticipantEmail("");
   };
 
   const handleRemoveParticipant = (pid: string) => {
@@ -162,21 +183,37 @@ const TripPage = () => {
                 {participants.map((p) => (
                   <span key={p.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-xs font-medium text-foreground">
                     {p.name}
+                    {p.status && p.status !== "active" && (
+                      <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                        p.status === "invited" ? "bg-warning/20 text-warning" : "bg-muted text-muted-foreground"
+                      }`}>
+                        {p.status === "invited" ? "convidado" : "pendente"}
+                      </span>
+                    )}
                     <button onClick={() => handleRemoveParticipant(p.id)} className="text-muted-foreground hover:text-destructive transition-colors">×</button>
                   </span>
                 ))}
               </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Adicionar participante"
-                  value={newParticipant}
-                  onChange={(e) => setNewParticipant(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddParticipant())}
-                  className="text-sm h-8"
-                />
-                <Button variant="outline" size="sm" onClick={handleAddParticipant} disabled={!newParticipant.trim()}>
-                  +
-                </Button>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Nome"
+                    value={newParticipantName}
+                    onChange={(e) => setNewParticipantName(e.target.value)}
+                    className="text-sm h-8"
+                  />
+                  <Input
+                    placeholder="Email (opcional)"
+                    type="email"
+                    value={newParticipantEmail}
+                    onChange={(e) => setNewParticipantEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddParticipant())}
+                    className="text-sm h-8"
+                  />
+                  <Button variant="outline" size="sm" onClick={handleAddParticipant} disabled={!newParticipantName.trim()}>
+                    +
+                  </Button>
+                </div>
               </div>
             </div>
 
