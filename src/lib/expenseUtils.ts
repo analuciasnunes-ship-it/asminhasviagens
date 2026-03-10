@@ -60,7 +60,9 @@ export function calculateTripTotals(trip: Trip): { total: number; paid: number; 
   };
 
   for (const day of trip.days) {
-    for (const m of day.meals || []) processItem(m.totalBill, m.expensePayments);
+    for (const m of day.meals || []) {
+      if ((m.totalBill ?? 0) > 0) processItem(m.totalBill!, m.expensePayments);
+    }
     for (const e of day.expenses || []) processItem(e.amount, e.expensePayments);
     for (const a of day.activities || []) {
       if (a.cost) processItem(a.cost, a.expensePayments);

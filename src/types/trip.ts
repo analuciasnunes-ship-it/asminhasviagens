@@ -55,12 +55,13 @@ export interface Meal {
   id: string;
   type: "meal";
   time: string;
-  restaurantName: string;
+  mealName: string;
+  restaurantName?: string;
   notes?: string;
   rating?: number;
-  totalBill: number;
-  paidBy: string;
-  sharedBy: string[];
+  totalBill?: number;
+  paidBy?: string;
+  sharedBy?: string[];
   expensePayments?: ExpensePayment[];
 }
 

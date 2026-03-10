@@ -468,10 +468,11 @@ async function syncMeals(day: DayPlan) {
         id: m.id,
         day_id: day.id,
         time: m.time || null,
-        restaurant_name: m.restaurantName,
+        meal_name: m.mealName || "Refeição",
+        restaurant_name: m.restaurantName || "",
         notes: m.notes || null,
         rating: m.rating ?? null,
-        total_bill: m.totalBill,
+        total_bill: m.totalBill ?? 0,
         paid_by: m.paidBy || null,
         shared_by: m.sharedBy || [],
       }))
