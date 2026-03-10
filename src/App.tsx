@@ -16,6 +16,18 @@ const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      const storedRedirect = localStorage.getItem("auth_redirect");
+      if (storedRedirect) {
+        localStorage.removeItem("auth_redirect");
+        navigate(storedRedirect, { replace: true });
+      }
+    }
+  }, [user, loading, navigate]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
