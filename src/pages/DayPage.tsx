@@ -19,6 +19,21 @@ const DayPage = () => {
   const trip = getTrip(id!);
   const day = trip?.days.find((d) => d.id === dayId);
 
+  const [activeTab, setActiveTab] = useState("timeline");
+  const [highlightedActivityId, setHighlightedActivityId] = useState<string | null>(null);
+
+  const handleMarkerClick = useCallback((activityId: string) => {
+    setActiveTab("timeline");
+    setHighlightedActivityId(activityId);
+    setTimeout(() => {
+      const el = document.getElementById(`activity-${activityId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => setHighlightedActivityId(null), 2000);
+      }
+    }, 100);
+  }, []);
+
   if (!trip || !day) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
