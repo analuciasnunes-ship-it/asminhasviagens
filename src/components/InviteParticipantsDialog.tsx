@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { UserPlus, Link2, Mail, Check, Copy, UserRoundPlus } from "lucide-react";
+import { UserPlus, Link2, Check, Copy, Share2, MessageCircle, Mail, Send, UserRoundPlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { Participant } from "@/types/trip";
 
 interface Props {
   tripId: string;
@@ -17,8 +15,6 @@ interface Props {
 export function InviteParticipantsDialog({ tripId, inviteToken, tripName, onAddParticipant }: Props) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [email, setEmail] = useState("");
-  const [sending, setSending] = useState(false);
   const [manualName, setManualName] = useState("");
   const [manualEmail, setManualEmail] = useState("");
   const [addingManual, setAddingManual] = useState(false);
@@ -27,41 +23,54 @@ export function InviteParticipantsDialog({ tripId, inviteToken, tripName, onAddP
     ? `${window.location.origin}/join/${inviteToken}`
     : "";
 
+  const inviteMessage = `Olá! Foste convidado para a viagem "${tripName}". Entra aqui: ${inviteUrl}`;
+
   const handleCopyLink = async () => {
     if (!inviteUrl) return;
     try {
       await navigator.clipboard.writeText(inviteUrl);
       setCopied(true);
-      toast({ title: "Link copiado!", description: "O link de convite foi copiado para a área de transferência." });
+      toast({ title: "Link copiado!" });
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast({ title: "Erro", description: "Não foi possível copiar o link.", variant: "destructive" });
     }
   };
 
-  const handleSendEmail = async () => {
-    if (!email.trim()) return;
-    setSending(true);
-    
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Convite: ${tripName}`, text: inviteMessage, url: inviteUrl });
+      } catch {
+        // User cancelled share
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
+
+  const handleWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(inviteMessage)}`, "_blank");
+  };
+
+  const handleEmail = () => {
     const subject = encodeURIComponent(`Convite para viagem: ${tripName}`);
-    const body = encodeURIComponent(
-      `Olá!\n\nFoste convidado para a viagem "${tripName}".\n\nClica no link para aceitar o convite:\n${inviteUrl}\n\nAté já!`
-    );
-    window.open(`mailto:${email}?subject=${subject}&body=${body}`, "_blank");
-    
-    toast({ title: "Email preparado", description: "O teu cliente de email foi aberto com o convite." });
-    setSending(false);
-    setEmail("");
+    const body = encodeURIComponent(inviteMessage);
+    window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
+  };
+
+  const handleMessenger = () => {
+    window.open(`https://www.facebook.com/dialog/send?link=${encodeURIComponent(inviteUrl)}&app_id=&redirect_uri=${encodeURIComponent(window.location.href)}`, "_blank");
   };
 
   const handleAddManual = async () => {
     if (!manualName.trim()) return;
     setAddingManual(true);
     await onAddParticipant(manualName.trim(), manualEmail.trim());
+    toast({ title: "Participante adicionado", description: `${manualName.trim()} foi adicionado à viagem.` });
     setManualName("");
     setManualEmail("");
     setAddingManual(false);
-    toast({ title: "Participante adicionado", description: `${manualName.trim()} foi adicionado à viagem.` });
   };
 
   return (
@@ -75,10 +84,11 @@ export function InviteParticipantsDialog({ tripId, inviteToken, tripName, onAddP
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Convidar participantes</DialogTitle>
+          <DialogDescription>Partilha o link de convite para adicionar pessoas à viagem.</DialogDescription>
         </DialogHeader>
         <div className="space-y-5 pt-2">
-          {/* Copy link section */}
-          <div className="space-y-2">
+          {/* Invite link */}
+          <div className="space-y-3">
             <label className="text-sm font-medium text-foreground flex items-center gap-1.5">
               <Link2 size={14} className="text-muted-foreground" />
               Link de convite
@@ -91,7 +101,7 @@ export function InviteParticipantsDialog({ tripId, inviteToken, tripName, onAddP
                 onClick={(e) => (e.target as HTMLInputElement).select()}
               />
               <Button
-                variant="outline"
+                variant={copied ? "default" : "outline"}
                 size="sm"
                 onClick={handleCopyLink}
                 className="shrink-0 gap-1.5"
@@ -100,40 +110,39 @@ export function InviteParticipantsDialog({ tripId, inviteToken, tripName, onAddP
                 {copied ? "Copiado" : "Copiar"}
               </Button>
             </div>
+
+            {/* Share buttons */}
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={handleWhatsApp}>
+                <MessageCircle size={14} />
+                WhatsApp
+              </Button>
+              <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={handleEmail}>
+                <Mail size={14} />
+                Email
+              </Button>
+              <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={handleShare}>
+                <Share2 size={14} />
+                Partilhar
+              </Button>
+            </div>
+
             <p className="text-xs text-muted-foreground">
               Qualquer pessoa com este link pode entrar na viagem após criar conta ou iniciar sessão.
             </p>
           </div>
 
-          {/* Send email section */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground flex items-center gap-1.5">
-              <Mail size={14} className="text-muted-foreground" />
-              Enviar por email
-            </label>
-            <div className="flex gap-2">
-              <Input
-                type="email"
-                placeholder="email@exemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendEmail()}
-                className="text-sm"
-              />
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleSendEmail}
-                disabled={!email.trim() || sending}
-                className="shrink-0 gap-1.5"
-              >
-                <Mail size={14} />
-                Enviar
-              </Button>
+          {/* Separator */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">ou</span>
             </div>
           </div>
 
-          {/* Add manually section */}
+          {/* Add manually */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground flex items-center gap-1.5">
               <UserRoundPlus size={14} className="text-muted-foreground" />
@@ -161,7 +170,7 @@ export function InviteParticipantsDialog({ tripId, inviteToken, tripName, onAddP
                 disabled={!manualName.trim() || addingManual}
                 className="shrink-0"
               >
-                +
+                <UserPlus size={14} />
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
