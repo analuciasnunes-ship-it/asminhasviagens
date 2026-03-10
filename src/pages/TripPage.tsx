@@ -61,12 +61,31 @@ const TripPage = () => {
     }
   };
 
-  const handleAddParticipant = () => {
-    const name = newParticipant.trim();
-    if (!name || participants.some((p) => p.name === name)) return;
-    const p: Participant = { id: crypto.randomUUID(), name };
+  const handleAddParticipant = async () => {
+    const name = newParticipantName.trim();
+    const email = newParticipantEmail.trim().toLowerCase();
+    if (!name) return;
+    if (participants.some((p) => p.name === name || (email && p.email === email))) return;
+
+    // Check if email belongs to an existing user
+    let userId: string | null = null;
+    let status: "active" | "invited" = "invited";
+    if (email) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+      if (profile) {
+        userId = profile.id;
+        status = "active";
+      }
+    }
+
+    const p: Participant = { id: crypto.randomUUID(), name, email: email || undefined, status, userId };
     updateTrip({ ...trip, participants: [...participants, p] });
-    setNewParticipant("");
+    setNewParticipantName("");
+    setNewParticipantEmail("");
   };
 
   const handleRemoveParticipant = (pid: string) => {
