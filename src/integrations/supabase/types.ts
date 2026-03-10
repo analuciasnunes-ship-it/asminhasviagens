@@ -688,6 +688,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_trip_id_from_activity: {
+        Args: { _activity_id: string }
+        Returns: string
+      }
       get_trip_id_from_day: { Args: { _day_id: string }; Returns: string }
       is_trip_participant: { Args: { _trip_id: string }; Returns: boolean }
     }
