@@ -658,6 +658,7 @@ export type Database = {
           destination: string
           end_date: string
           id: string
+          invite_token: string
           start_date: string
           updated_at: string
         }
@@ -668,6 +669,7 @@ export type Database = {
           destination: string
           end_date: string
           id?: string
+          invite_token?: string
           start_date: string
           updated_at?: string
         }
@@ -678,6 +680,7 @@ export type Database = {
           destination?: string
           end_date?: string
           id?: string
+          invite_token?: string
           start_date?: string
           updated_at?: string
         }
@@ -694,6 +697,7 @@ export type Database = {
       }
       get_trip_id_from_day: { Args: { _day_id: string }; Returns: string }
       is_trip_participant: { Args: { _trip_id: string }; Returns: boolean }
+      join_trip_by_token: { Args: { _invite_token: string }; Returns: Json }
     }
     Enums: {
       participant_status: "active" | "invited" | "pending"

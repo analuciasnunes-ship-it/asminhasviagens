@@ -5,6 +5,7 @@ import { TripDetails } from "@/components/TripDetails";
 import { TripExpenseSummaryCard } from "@/components/TripExpenseSummaryCard";
 import { TodayView } from "@/components/TodayView";
 import { TripMapView } from "@/components/TripMapView";
+import { InviteParticipantsDialog } from "@/components/InviteParticipantsDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Trash2, Calendar, Users, MapPin, Clock, Map } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
@@ -176,18 +177,33 @@ const TripPage = () => {
           <TabsContent value="trip">
             {/* Participants */}
             <div className="mb-6 space-y-3">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <Users size={14} /> Participantes
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Users size={14} /> Participantes
+                </h3>
+                <InviteParticipantsDialog
+                  tripId={trip.id}
+                  inviteToken={trip.inviteToken}
+                  tripName={trip.destination}
+                />
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 {participants.map((p) => (
                   <span key={p.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-xs font-medium text-foreground">
                     {p.name}
-                    {p.status && p.status !== "active" && (
-                      <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                        p.status === "invited" ? "bg-warning/20 text-warning" : "bg-muted text-muted-foreground"
-                      }`}>
-                        {p.status === "invited" ? "convidado" : "pendente"}
+                    {p.status === "active" && (
+                      <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-success/20 text-success">
+                        ativo
+                      </span>
+                    )}
+                    {p.status === "invited" && (
+                      <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-warning/20 text-warning">
+                        convidado
+                      </span>
+                    )}
+                    {p.status === "pending" && (
+                      <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-muted text-muted-foreground">
+                        pendente
                       </span>
                     )}
                     <button onClick={() => handleRemoveParticipant(p.id)} className="text-muted-foreground hover:text-destructive transition-colors">×</button>

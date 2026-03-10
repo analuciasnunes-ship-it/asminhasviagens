@@ -152,6 +152,7 @@ export interface Trip {
   startDate: string;
   endDate: string;
   coverImage?: string;
+  inviteToken?: string;
   participants: Participant[];
   flights: Flight[];
   accommodations: Accommodation[];

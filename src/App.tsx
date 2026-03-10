@@ -9,6 +9,7 @@ import TripPage from "./pages/TripPage";
 import DayPage from "./pages/DayPage";
 import TripExpensesPage from "./pages/TripExpensesPage";
 import AuthPage from "./pages/AuthPage";
+import JoinTripPage from "./pages/JoinTripPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 const AppRoutes = () => (
   <Routes>
     <Route path="/auth" element={<AuthPage />} />
+    <Route path="/join/:token" element={<JoinTripPage />} />
     <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
     <Route path="/trip/:id" element={<ProtectedRoute><TripPage /></ProtectedRoute>} />
     <Route path="/trip/:id/day/:dayId" element={<ProtectedRoute><DayPage /></ProtectedRoute>} />

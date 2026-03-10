@@ -244,6 +244,7 @@ export function useTrips() {
           startDate: t.start_date,
           endDate: t.end_date,
           coverImage: t.cover_image || undefined,
+          inviteToken: (t as any).invite_token || undefined,
           participants: tripParticipants,
           flights: tripFlights,
           accommodations: tripAccommodations,
