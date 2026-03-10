@@ -128,7 +128,9 @@ export function calculateBalances(trip: Trip): Balance[] {
   // Gather all meals, expenses, and activity expenses from all days
   for (const day of trip.days) {
     for (const meal of day.meals || []) {
-      processItem(meal.totalBill, meal.paidBy, meal.sharedBy, meal.expensePayments);
+      if ((meal.totalBill ?? 0) > 0 && meal.paidBy && meal.sharedBy && meal.sharedBy.length > 0) {
+        processItem(meal.totalBill!, meal.paidBy, meal.sharedBy, meal.expensePayments);
+      }
     }
     for (const exp of day.expenses || []) {
       processItem(exp.amount, exp.paidBy, exp.sharedBy, exp.expensePayments);
