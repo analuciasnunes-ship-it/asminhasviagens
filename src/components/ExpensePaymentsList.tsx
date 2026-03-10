@@ -168,28 +168,22 @@ export function ExpensePaymentsList({ totalAmount, payments, participants, onCha
           <div className="space-y-1">
             <Label className="text-[11px]">Estado</Label>
             <div className="flex gap-1.5">
-              <button
-                type="button"
-                onClick={() => setStatus("paid")}
-                className={`px-2 py-0.5 rounded-full text-[11px] font-medium border transition-colors ${
+              <span
+                className={`px-2 py-0.5 rounded-full text-[11px] font-medium border ${
                   status === "paid"
                     ? "bg-success/10 text-success border-success/30"
-                    : "bg-secondary text-muted-foreground border-border"
+                    : "bg-warning/10 text-warning border-warning/30"
                 }`}
               >
-                <Check size={10} className="inline mr-0.5" /> Pago
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatus("pending")}
-                className={`px-2 py-0.5 rounded-full text-[11px] font-medium border transition-colors ${
-                  status === "pending"
-                    ? "bg-warning/10 text-warning border-warning/30"
-                    : "bg-secondary text-muted-foreground border-border"
-                }`}
-              >
-                <Clock size={10} className="inline mr-0.5" /> Pendente
-              </button>
+                {status === "paid" ? (
+                  <><Check size={10} className="inline mr-0.5" /> Pago</>
+                ) : (
+                  <><Clock size={10} className="inline mr-0.5" /> Pendente</>
+                )}
+              </span>
+              <span className="text-[10px] text-muted-foreground self-center">
+                (automático pela data)
+              </span>
             </div>
           </div>
           <div className="flex gap-2">
