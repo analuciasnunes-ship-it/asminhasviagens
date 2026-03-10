@@ -9,6 +9,7 @@ import { Plus } from "lucide-react";
 import { Activity, Participant, DURATION_OPTIONS, DurationLabel, ExpensePayment } from "@/types/trip";
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
 import { geocodeLocation } from "@/lib/geocode";
+import { LocationAutocomplete } from "./LocationAutocomplete";
 
 interface Props {
   onAdd: (activity: Activity) => void;
@@ -34,6 +35,14 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
   const [paidBy, setPaidBy] = useState("");
   const [sharedBy, setSharedBy] = useState<string[]>([]);
   const [expensePayments, setExpensePayments] = useState<ExpensePayment[]>([]);
+  const [selectedLat, setSelectedLat] = useState<number | undefined>();
+  const [selectedLng, setSelectedLng] = useState<number | undefined>();
+
+  const handleLocationSelect = (result: { name: string; displayName: string; lat: number; lng: number }) => {
+    setLocation(result.displayName);
+    setSelectedLat(result.lat);
+    setSelectedLng(result.lng);
+  };
 
   useEffect(() => {
     if (open && editActivity) {
@@ -47,6 +56,8 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       setPaidBy(editActivity.paidBy || "");
       setSharedBy(editActivity.sharedBy || participants.map((p) => p.id));
       setExpensePayments(editActivity.expensePayments || []);
+      setSelectedLat(editActivity.lat);
+      setSelectedLng(editActivity.lng);
     } else if (open && !editActivity) {
       setTitle("");
       setTime("");
@@ -58,6 +69,8 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       setPaidBy("");
       setSharedBy(participants.map((p) => p.id));
       setExpensePayments([]);
+      setSelectedLat(undefined);
+      setSelectedLng(undefined);
     }
   }, [open, editActivity]);
 
@@ -71,12 +84,12 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
   const handleSubmit = async () => {
     if (!title) return;
 
-    let lat = editActivity?.lat;
-    let lng = editActivity?.lng;
+    let lat = selectedLat ?? editActivity?.lat;
+    let lng = selectedLng ?? editActivity?.lng;
 
-    // Geocode if location changed or coords missing
+    // Geocode only if location changed and no coords from autocomplete
     const locationValue = location.trim();
-    if (locationValue && (locationValue !== editActivity?.location || !lat || !lng)) {
+    if (locationValue && !lat && !lng) {
       const coords = await geocodeLocation(locationValue);
       if (coords) {
         lat = coords[0];
@@ -126,7 +139,12 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
             <Label>Local a visitar</Label>
-            <Input placeholder="Ex: Torre de Belém" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <LocationAutocomplete
+              value={title}
+              onChange={setTitle}
+              onSelect={handleLocationSelect}
+              placeholder="Ex: Torre de Belém"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
