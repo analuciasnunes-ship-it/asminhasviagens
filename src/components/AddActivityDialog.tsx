@@ -9,6 +9,7 @@ import { Plus } from "lucide-react";
 import { Activity, Participant, DURATION_OPTIONS, DurationLabel, ExpensePayment } from "@/types/trip";
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
 import { geocodeLocation } from "@/lib/geocode";
+import { LocationAutocomplete } from "./LocationAutocomplete";
 
 interface Props {
   onAdd: (activity: Activity) => void;
