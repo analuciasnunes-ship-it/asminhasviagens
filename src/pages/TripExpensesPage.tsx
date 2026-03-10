@@ -243,6 +243,8 @@ const TripExpensesPage = () => {
   const trip = getTrip(id!);
   const [editPayment, setEditPayment] = useState<Payment | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const categories = useExpenseCategories(trip!);
+  const pendingPayments = usePendingPayments(trip!);
 
   if (!trip) {
     return (
@@ -253,13 +255,11 @@ const TripExpensesPage = () => {
   }
 
   const participants = trip.participants || [];
-  const categories = useExpenseCategories(trip);
   const grandTotal = categories.reduce((s, c) => s + c.value, 0);
   const tripTotals = calculateTripTotals(trip);
   const balances = calculateBalances(trip);
   const settlements = calculateSettlements(balances);
   const payments = trip.payments || [];
-  const pendingPayments = usePendingPayments(trip);
 
   const handleAddPayment = (payment: Payment) => {
     const existing = (trip.payments || []).find((p) => p.id === payment.id);
