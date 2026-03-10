@@ -185,6 +185,9 @@ const TripPage = () => {
                   tripId={trip.id}
                   inviteToken={trip.inviteToken}
                   tripName={trip.destination}
+                  onAddParticipant={async (name, email) => {
+                    await handleAddParticipant(name, email);
+                  }}
                 />
               </div>
               <div className="flex flex-wrap gap-1.5">
