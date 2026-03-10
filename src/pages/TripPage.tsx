@@ -22,8 +22,8 @@ const TripPage = () => {
   const { getTrip, updateTrip, deleteTrip } = useTrips();
   const trip = getTrip(id!);
 
-  const [newParticipantName, setNewParticipantName] = useState("");
-  const [newParticipantEmail, setNewParticipantEmail] = useState("");
+
+
 
   if (!trip) {
     return (
