@@ -565,6 +565,13 @@ async function syncAccommodations(trip: Trip) {
         shared_by: a.sharedBy || [],
       }))
     );
+
+    // Sync expense payments for accommodations
+    for (const a of trip.accommodations) {
+      if (a.expensePayments) {
+        await syncExpensePayments("accommodation", a.id, a.expensePayments);
+      }
+    }
   }
 }
 
