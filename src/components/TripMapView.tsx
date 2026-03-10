@@ -23,7 +23,7 @@ interface MarkerActivity {
 
 interface Props {
   trip: Trip;
-  onNavigateToDay?: (dayId: string) => void;
+  onNavigateToDay?: (dayId: string, activityId?: string) => void;
 }
 
 export function TripMapView({ trip, onNavigateToDay }: Props) {
