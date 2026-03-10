@@ -66,6 +66,7 @@ export function CreateTripDialog({ onCreateTrip }: Props) {
     setEndDate("");
     setCoverImage("");
     setParticipantInput("");
+    setParticipantEmailInput("");
     setParticipantNames([]);
   };
 
