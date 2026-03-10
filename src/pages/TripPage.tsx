@@ -248,6 +248,22 @@ const TripPage = () => {
             <TripMapView
               trip={trip}
               onNavigateToDay={(dayId, activityId) => navigate(`/trip/${trip.id}/day/${dayId}${activityId ? `#activity-${activityId}` : ""}`)}
+              onUpdateActivity={(dayId, activity) => {
+                updateTrip({
+                  ...trip,
+                  days: trip.days.map((d) =>
+                    d.id === dayId ? { ...d, activities: d.activities.map((a) => (a.id === activity.id ? activity : a)) } : d
+                  ),
+                });
+              }}
+              onDeleteActivity={(dayId, activityId) => {
+                updateTrip({
+                  ...trip,
+                  days: trip.days.map((d) =>
+                    d.id === dayId ? { ...d, activities: d.activities.filter((a) => a.id !== activityId) } : d
+                  ),
+                });
+              }}
             />
           </TabsContent>
         </Tabs>
