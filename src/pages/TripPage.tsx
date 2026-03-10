@@ -12,9 +12,6 @@ import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Flight, Accommodation, RentalCar, OtherDetail, Participant, Activity } from "@/types/trip";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 const TripPage = () => {
   const { id } = useParams<{ id: string }>();
