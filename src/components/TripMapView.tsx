@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Trip, Activity } from "@/types/trip";
-import { MapPin, Clock } from "lucide-react";
+import { Trip, Activity, Participant } from "@/types/trip";
+import { MapPin, Clock, ChevronDown } from "lucide-react";
 import { geocodeLocation } from "@/lib/geocode";
 import { getDayColor } from "@/lib/dayColors";
+import { ActivityCard } from "./ActivityCard";
 
 // Fix default marker icons for Leaflet in bundled environments
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -24,14 +25,17 @@ interface MarkerActivity {
 interface Props {
   trip: Trip;
   onNavigateToDay?: (dayId: string, activityId?: string) => void;
+  onUpdateActivity?: (dayId: string, activity: Activity) => void;
+  onDeleteActivity?: (dayId: string, activityId: string) => void;
 }
 
-export function TripMapView({ trip, onNavigateToDay }: Props) {
+export function TripMapView({ trip, onNavigateToDay, onUpdateActivity, onDeleteActivity }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null);
 
   // Collect all activities with locations
   const allMarkerActivities = useMemo<MarkerActivity[]>(() => {
@@ -189,28 +193,54 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
 
       {/* Activity list below map */}
       <div className="space-y-1.5">
-        {filteredActivities.map(({ activity, dayNumber, indexInDay }) => (
-          <div
-            key={activity.id}
-            className="flex items-center gap-3 p-2.5 rounded-lg bg-card border border-border"
-          >
-            <div
-              className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
-              style={{ background: getDayColor(dayNumber) }}
-            >
-              {indexInDay}
+        {filteredActivities.map(({ activity, dayNumber, dayId, indexInDay }) => {
+          const isExpanded = expandedActivityId === activity.id;
+          return (
+            <div key={activity.id}>
+              <button
+                onClick={() => setExpandedActivityId(isExpanded ? null : activity.id)}
+                className={`w-full flex items-center gap-3 p-2.5 rounded-lg border transition-all ${
+                  isExpanded
+                    ? "bg-primary/5 border-primary/30"
+                    : "bg-card border-border hover:border-primary/20"
+                }`}
+              >
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                  style={{ background: getDayColor(dayNumber) }}
+                >
+                  {indexInDay}
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-medium text-foreground truncate">{activity.title}</p>
+                  <p className="text-xs text-muted-foreground truncate">{activity.location}</p>
+                </div>
+                {activity.time && (
+                  <span className="text-xs text-muted-foreground shrink-0 flex items-center gap-1">
+                    <Clock size={10} /> {activity.time}
+                  </span>
+                )}
+                <ChevronDown
+                  size={14}
+                  className={`shrink-0 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                />
+              </button>
+              {isExpanded && (
+                <div className="mt-1 ml-9 animate-fade-in">
+                  <ActivityCard
+                    activity={activity}
+                    participants={trip.participants || []}
+                    onUpdate={(updated) => onUpdateActivity?.(dayId, updated)}
+                    onDelete={(id) => {
+                      onDeleteActivity?.(dayId, id);
+                      setExpandedActivityId(null);
+                    }}
+                  />
+                </div>
+              )}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{activity.title}</p>
-              <p className="text-xs text-muted-foreground truncate">{activity.location}</p>
-            </div>
-            {activity.time && (
-              <span className="text-xs text-muted-foreground shrink-0 flex items-center gap-1">
-                <Clock size={10} /> {activity.time}
-              </span>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
