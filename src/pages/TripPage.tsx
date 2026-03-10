@@ -8,6 +8,7 @@ import { TripMapView } from "@/components/TripMapView";
 import { InviteParticipantsDialog } from "@/components/InviteParticipantsDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Trash2, Calendar, Users, MapPin, Clock, Map } from "lucide-react";
+import { EditTripDialog } from "@/components/EditTripDialog";
 import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Flight, Accommodation, RentalCar, OtherDetail, Participant, Activity } from "@/types/trip";
