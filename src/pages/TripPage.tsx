@@ -247,7 +247,7 @@ const TripPage = () => {
           <TabsContent value="map">
             <TripMapView
               trip={trip}
-              onNavigateToDay={(dayId) => navigate(`/trip/${trip.id}/day/${dayId}`)}
+              onNavigateToDay={(dayId, activityId) => navigate(`/trip/${trip.id}/day/${dayId}${activityId ? `#activity-${activityId}` : ""}`)}
             />
           </TabsContent>
         </Tabs>

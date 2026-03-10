@@ -1,5 +1,5 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useState, useCallback } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useState, useCallback, useEffect } from "react";
 import { useTrips } from "@/hooks/useTrips";
 import { AddDayItemMenu } from "@/components/AddDayItemMenu";
 import { ActivityTimeline } from "@/components/ActivityTimeline";
@@ -19,10 +19,11 @@ const DayPage = () => {
   const trip = getTrip(id!);
   const day = trip?.days.find((d) => d.id === dayId);
 
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("timeline");
   const [highlightedActivityId, setHighlightedActivityId] = useState<string | null>(null);
 
-  const handleMarkerClick = useCallback((activityId: string) => {
+  const scrollToActivity = useCallback((activityId: string) => {
     setActiveTab("timeline");
     setHighlightedActivityId(activityId);
     setTimeout(() => {
@@ -33,6 +34,21 @@ const DayPage = () => {
       }
     }, 100);
   }, []);
+
+  // Handle hash-based navigation from trip map
+  useEffect(() => {
+    const hash = location.hash;
+    if (hash?.startsWith("#activity-")) {
+      const activityId = hash.replace("#activity-", "");
+      scrollToActivity(activityId);
+      // Clean hash
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, [location.hash, scrollToActivity]);
+
+  const handleMarkerClick = useCallback((activityId: string) => {
+    scrollToActivity(activityId);
+  }, [scrollToActivity]);
 
   if (!trip || !day) {
     return (

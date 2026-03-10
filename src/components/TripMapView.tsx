@@ -23,7 +23,7 @@ interface MarkerActivity {
 
 interface Props {
   trip: Trip;
-  onNavigateToDay?: (dayId: string) => void;
+  onNavigateToDay?: (dayId: string, activityId?: string) => void;
 }
 
 export function TripMapView({ trip, onNavigateToDay }: Props) {
@@ -84,7 +84,7 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
       const bounds: L.LatLngTuple[] = [];
 
       await Promise.all(
-        filteredActivities.map(async ({ activity, dayNumber, indexInDay }) => {
+        filteredActivities.map(async ({ activity, dayNumber, dayId, indexInDay }) => {
           // Use stored coordinates first, fallback to runtime geocoding
           let coords: [number, number] | null = null;
           if (activity.lat != null && activity.lng != null) {
@@ -106,7 +106,11 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
 
           const marker = L.marker(coords, { icon }).addTo(markersLayer.current!);
 
-          const popupContent = `
+          marker.on("click", () => {
+            onNavigateToDay?.(dayId, activity.id);
+          });
+
+          marker.bindPopup(`
             <div style="min-width:180px;font-family:system-ui,sans-serif;">
               <p style="font-weight:600;font-size:14px;margin:0 0 4px;">${activity.title}</p>
               <p style="color:#666;font-size:12px;margin:0 0 8px;">Dia ${dayNumber}${activity.time ? ` — ${activity.time}` : ""}</p>
@@ -116,8 +120,7 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
                 📍 Abrir no Maps
               </a>
             </div>
-          `;
-          marker.bindPopup(popupContent);
+          `);
         })
       );
 
