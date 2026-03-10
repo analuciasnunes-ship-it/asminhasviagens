@@ -38,7 +38,8 @@ export function DayMapView({ activities, participants, onUpdate, onDelete, onMar
     if (!query) return;
     window.open(
       `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
-      "_blank"
+      "_blank",
+      "noopener,noreferrer"
     );
   };
 
