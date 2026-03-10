@@ -119,9 +119,13 @@ export function ActivityCard({ activity, participants = [], onUpdate, onDelete }
                 <ExternalLink size={11} /> Ver link
               </a>
             )}
-            {activity.location && (
+            {activity.location && activity.location.trim() && (
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.location)}`}
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  activity.lat != null && activity.lng != null
+                    ? `${activity.lat},${activity.lng}`
+                    : activity.location.trim()
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"

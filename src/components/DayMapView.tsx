@@ -31,9 +31,13 @@ export function DayMapView({ activities, participants, onUpdate, onDelete, onMar
     );
   }
 
-  const openGoogleMaps = (location: string) => {
+  const openGoogleMaps = (activity: Activity) => {
+    const query = activity.lat != null && activity.lng != null
+      ? `${activity.lat},${activity.lng}`
+      : (activity.location || "").trim();
+    if (!query) return;
     window.open(
-      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`,
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
       "_blank"
     );
   };
@@ -104,7 +108,7 @@ export function DayMapView({ activities, participants, onUpdate, onDelete, onMar
 
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => openGoogleMaps(selectedActivity.location!)}
+              onClick={() => openGoogleMaps(selectedActivity)}
               className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
             >
               <MapPin size={16} />
