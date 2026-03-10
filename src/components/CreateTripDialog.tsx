@@ -126,6 +126,12 @@ export function CreateTripDialog({ onCreateTrip }: Props) {
                 placeholder="Nome"
                 value={participantInput}
                 onChange={(e) => setParticipantInput(e.target.value)}
+              />
+              <Input
+                placeholder="Email (opcional)"
+                type="email"
+                value={participantEmailInput}
+                onChange={(e) => setParticipantEmailInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addParticipant())}
               />
               <Button type="button" variant="outline" size="sm" onClick={addParticipant} disabled={!participantInput.trim()}>
@@ -134,10 +140,11 @@ export function CreateTripDialog({ onCreateTrip }: Props) {
             </div>
             {participantNames.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-1">
-                {participantNames.map((name) => (
-                  <span key={name} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs font-medium text-foreground">
-                    {name}
-                    <button onClick={() => removeParticipant(name)} className="text-muted-foreground hover:text-destructive transition-colors">×</button>
+                {participantNames.map((p) => (
+                  <span key={p.name} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs font-medium text-foreground">
+                    {p.name}
+                    {p.email && <span className="text-muted-foreground">({p.email})</span>}
+                    <button onClick={() => removeParticipant(p.name)} className="text-muted-foreground hover:text-destructive transition-colors">×</button>
                   </span>
                 ))}
               </div>
