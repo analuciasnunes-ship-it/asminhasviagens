@@ -23,7 +23,16 @@ const AuthPage = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user) navigate(redirectTo, { replace: true });
+    if (user) {
+      // Check for stored redirect (from OAuth flow)
+      const storedRedirect = localStorage.getItem("auth_redirect");
+      if (storedRedirect) {
+        localStorage.removeItem("auth_redirect");
+        navigate(storedRedirect, { replace: true });
+      } else {
+        navigate(redirectTo, { replace: true });
+      }
+    }
   }, [user, navigate, redirectTo]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -31,6 +40,10 @@ const AuthPage = () => {
     setLoading(true);
     try {
       if (mode === "signup") {
+        // Persist redirect for email confirmation flow
+        if (redirectTo && redirectTo !== "/") {
+          localStorage.setItem("auth_redirect", redirectTo);
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -55,6 +68,10 @@ const AuthPage = () => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
+      // Persist redirect path through OAuth flow
+      if (redirectTo && redirectTo !== "/") {
+        localStorage.setItem("auth_redirect", redirectTo);
+      }
       const { error } = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
