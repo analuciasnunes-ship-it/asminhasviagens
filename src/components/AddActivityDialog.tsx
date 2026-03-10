@@ -35,6 +35,14 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
   const [paidBy, setPaidBy] = useState("");
   const [sharedBy, setSharedBy] = useState<string[]>([]);
   const [expensePayments, setExpensePayments] = useState<ExpensePayment[]>([]);
+  const [selectedLat, setSelectedLat] = useState<number | undefined>();
+  const [selectedLng, setSelectedLng] = useState<number | undefined>();
+
+  const handleLocationSelect = (result: { name: string; displayName: string; lat: number; lng: number }) => {
+    setLocation(result.displayName);
+    setSelectedLat(result.lat);
+    setSelectedLng(result.lng);
+  };
 
   useEffect(() => {
     if (open && editActivity) {
