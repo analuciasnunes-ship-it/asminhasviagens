@@ -25,9 +25,11 @@ interface MarkerActivity {
 interface Props {
   trip: Trip;
   onNavigateToDay?: (dayId: string, activityId?: string) => void;
+  onUpdateActivity?: (dayId: string, activity: Activity) => void;
+  onDeleteActivity?: (dayId: string, activityId: string) => void;
 }
 
-export function TripMapView({ trip, onNavigateToDay }: Props) {
+export function TripMapView({ trip, onNavigateToDay, onUpdateActivity, onDeleteActivity }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
