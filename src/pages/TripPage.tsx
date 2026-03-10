@@ -37,7 +37,7 @@ const TripPage = () => {
   const totalCost = trip.days.reduce(
     (sum, day) => {
       const actCost = day.activities.reduce((s, a) => s + (a.cost || 0), 0);
-      const mealCost = (day.meals || []).reduce((s, m) => s + m.totalBill, 0);
+      const mealCost = (day.meals || []).reduce((s, m) => s + (m.totalBill ?? 0), 0);
       const expCost = (day.expenses || []).reduce((s, e) => s + e.amount, 0);
       return sum + actCost + mealCost + expCost;
     },

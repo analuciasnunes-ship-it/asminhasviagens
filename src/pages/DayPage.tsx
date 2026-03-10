@@ -61,7 +61,7 @@ const DayPage = () => {
   const participants = trip.participants || [];
   const dateLabel = format(new Date(day.date), "EEEE, d 'de' MMMM", { locale: pt });
   const activityCost = day.activities.reduce((s, a) => s + (a.cost || 0), 0);
-  const mealCost = (day.meals || []).reduce((s, m) => s + m.totalBill, 0);
+  const mealCost = (day.meals || []).reduce((s, m) => s + (m.totalBill ?? 0), 0);
   const expenseCost = (day.expenses || []).reduce((s, e) => s + e.amount, 0);
   const dayCost = activityCost + mealCost + expenseCost;
 

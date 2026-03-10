@@ -145,7 +145,7 @@ function usePendingPayments(trip: Trip | undefined): PendingPaymentItem[] {
       (day.meals || []).forEach(meal => {
         addPendingFromExpensePayments(
           meal.expensePayments,
-          meal.restaurantName || "Refeição",
+          meal.mealName || meal.restaurantName || "Refeição",
           "Refeições"
         );
       });
