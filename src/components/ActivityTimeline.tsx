@@ -282,7 +282,7 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
                   <AlertTriangle size={10} /> Conflito
                 </span>
               )}
-              {!isLocked && activity.time && (
+              {!isLocked && (
                 <GripVertical size={12} className="text-muted-foreground/20 ml-auto cursor-grab active:cursor-grabbing" />
               )}
             </div>
