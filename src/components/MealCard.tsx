@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Meal, Participant } from "@/types/trip";
 import { AddMealDialog } from "./AddMealDialog";
 import { ExpensePaymentsList, PaymentStatusBadge } from "./ExpensePaymentsList";
-import { UtensilsCrossed, Star, Trash2, Pencil } from "lucide-react";
+import { UtensilsCrossed, Star, Trash2, Pencil, Plus } from "lucide-react";
 
 interface Props {
   meal: Meal;
@@ -14,10 +14,17 @@ interface Props {
 export function MealCard({ meal, participants, onDelete, onUpdate }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [showPayments, setShowPayments] = useState(false);
-  const payer = participants.find((p) => p.id === meal.paidBy);
-  const sharers = participants.filter((p) => meal.sharedBy.includes(p.id));
-  const perPerson = meal.totalBill / (meal.sharedBy.length || 1);
+
+  const hasExpense = (meal.totalBill ?? 0) > 0;
+  const payer = hasExpense ? participants.find((p) => p.id === meal.paidBy) : null;
+  const sharers = hasExpense ? participants.filter((p) => (meal.sharedBy || []).includes(p.id)) : [];
+  const perPerson = hasExpense ? (meal.totalBill ?? 0) / ((meal.sharedBy || []).length || 1) : 0;
   const hasPaymentPlan = meal.expensePayments && meal.expensePayments.length > 0;
+
+  // Handler to open edit dialog in "add expense" mode
+  const handleAddExpense = () => {
+    setEditOpen(true);
+  };
 
   return (
     <>
@@ -29,8 +36,17 @@ export function MealCard({ meal, participants, onDelete, onUpdate }: Props) {
                 <UtensilsCrossed size={14} className="text-warning" />
               </div>
               <div>
-                <h4 className="font-medium text-sm text-foreground">{meal.restaurantName}</h4>
-                <p className="text-xs text-muted-foreground">{meal.totalBill.toFixed(2)}€</p>
+                <h4 className="font-medium text-sm text-foreground">{meal.mealName}</h4>
+                <div className="flex items-center gap-1.5">
+                  {meal.restaurantName && (
+                    <p className="text-xs text-muted-foreground">{meal.restaurantName}</p>
+                  )}
+                  {hasExpense && (
+                    <p className="text-xs font-medium text-foreground">
+                      {meal.restaurantName ? "· " : ""}{(meal.totalBill ?? 0).toFixed(2)}€
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -43,22 +59,36 @@ export function MealCard({ meal, participants, onDelete, onUpdate }: Props) {
             </div>
           </div>
 
-          <div className="mt-2 space-y-1">
-            <p className="text-xs text-muted-foreground">
-              Pago por <span className="font-medium text-foreground">{payer?.name || "?"}</span>
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Dividido: {sharers.map((s) => s.name).join(", ")} · {perPerson.toFixed(2)}€/pessoa
-            </p>
-            {meal.notes && (
-              <p className="text-xs text-muted-foreground italic">{meal.notes}</p>
-            )}
-          </div>
+          {/* Expense details - only shown when expense exists */}
+          {hasExpense && (
+            <div className="mt-2 space-y-1">
+              <p className="text-xs text-muted-foreground">
+                Pago por <span className="font-medium text-foreground">{payer?.name || "?"}</span>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Dividido: {sharers.map((s) => s.name).join(", ")} · {perPerson.toFixed(2)}€/pessoa
+              </p>
+            </div>
+          )}
+
+          {meal.notes && (
+            <p className="text-xs text-muted-foreground italic mt-1">{meal.notes}</p>
+          )}
+
+          {/* Add expense button - only for planned meals */}
+          {!hasExpense && participants.length > 0 && (
+            <button
+              onClick={handleAddExpense}
+              className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Plus size={12} /> Adicionar despesa
+            </button>
+          )}
 
           {/* Payment status badge */}
-          {hasPaymentPlan && (
+          {hasExpense && hasPaymentPlan && (
             <div className="mt-2">
-              <PaymentStatusBadge totalAmount={meal.totalBill} payments={meal.expensePayments} />
+              <PaymentStatusBadge totalAmount={meal.totalBill ?? 0} payments={meal.expensePayments} />
             </div>
           )}
 
@@ -75,24 +105,26 @@ export function MealCard({ meal, participants, onDelete, onUpdate }: Props) {
             ))}
           </div>
 
-          {/* Payments section */}
-          <div className="mt-2 pt-2 border-t border-border/40">
-            {showPayments || hasPaymentPlan ? (
-              <ExpensePaymentsList
-                totalAmount={meal.totalBill}
-                payments={meal.expensePayments || []}
-                participants={participants}
-                onChange={(payments) => onUpdate({ ...meal, expensePayments: payments })}
-              />
-            ) : (
-              <button
-                onClick={() => setShowPayments(true)}
-                className="text-[11px] text-muted-foreground hover:text-primary transition-colors"
-              >
-                + Gerir pagamentos parciais
-              </button>
-            )}
-          </div>
+          {/* Payments section - only when expense exists */}
+          {hasExpense && (
+            <div className="mt-2 pt-2 border-t border-border/40">
+              {showPayments || hasPaymentPlan ? (
+                <ExpensePaymentsList
+                  totalAmount={meal.totalBill ?? 0}
+                  payments={meal.expensePayments || []}
+                  participants={participants}
+                  onChange={(payments) => onUpdate({ ...meal, expensePayments: payments })}
+                />
+              ) : (
+                <button
+                  onClick={() => setShowPayments(true)}
+                  className="text-[11px] text-muted-foreground hover:text-primary transition-colors"
+                >
+                  + Gerir pagamentos parciais
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

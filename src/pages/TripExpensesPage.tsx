@@ -36,7 +36,7 @@ function useExpenseCategories(trip: Trip | undefined): CategoryData[] {
 
     // Meals
     const meals = trip.days.reduce(
-      (s, d) => s + (d.meals || []).reduce((ms, m) => ms + m.totalBill, 0),
+      (s, d) => s + (d.meals || []).reduce((ms, m) => ms + (m.totalBill ?? 0), 0),
       0
     );
 
@@ -145,7 +145,7 @@ function usePendingPayments(trip: Trip | undefined): PendingPaymentItem[] {
       (day.meals || []).forEach(meal => {
         addPendingFromExpensePayments(
           meal.expensePayments,
-          meal.restaurantName || "Refeição",
+          meal.mealName || meal.restaurantName || "Refeição",
           "Refeições"
         );
       });

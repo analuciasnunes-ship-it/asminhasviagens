@@ -210,6 +210,7 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
                 {meal.time}
               </span>
               <UtensilsCrossed size={10} className="text-warning" />
+              <span className="text-[11px] text-muted-foreground/60">{meal.mealName}</span>
             </div>
             <MealCard meal={meal} participants={participants} onDelete={onDeleteMeal || (() => {})} onUpdate={onUpdateMeal || (() => {})} />
           </div>

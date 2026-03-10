@@ -134,18 +134,22 @@ export function useTrips() {
 
             const dayMeals: Meal[] = (meals || [])
               .filter(m => m.day_id === d.id)
-              .map(m => ({
-                id: m.id,
-                type: "meal" as const,
-                time: m.time || "",
-                restaurantName: m.restaurant_name,
-                notes: m.notes || undefined,
-                rating: m.rating || undefined,
-                totalBill: Number(m.total_bill),
-                paidBy: m.paid_by || "",
-                sharedBy: (m.shared_by as string[]) || [],
-                expensePayments: epByParent.get(m.id),
-              }));
+              .map(m => {
+                const bill = Number(m.total_bill);
+                return {
+                  id: m.id,
+                  type: "meal" as const,
+                  time: m.time || "",
+                  mealName: (m as any).meal_name || "Refeição",
+                  restaurantName: m.restaurant_name || undefined,
+                  notes: m.notes || undefined,
+                  rating: m.rating || undefined,
+                  totalBill: bill > 0 ? bill : undefined,
+                  paidBy: m.paid_by || undefined,
+                  sharedBy: (m.shared_by as string[])?.length ? (m.shared_by as string[]) : undefined,
+                  expensePayments: epByParent.get(m.id),
+                };
+              });
 
             const dayExpenses: Expense[] = (expenses || [])
               .filter(e => e.day_id === d.id)
@@ -464,10 +468,11 @@ async function syncMeals(day: DayPlan) {
         id: m.id,
         day_id: day.id,
         time: m.time || null,
-        restaurant_name: m.restaurantName,
+        meal_name: m.mealName || "Refeição",
+        restaurant_name: m.restaurantName || "",
         notes: m.notes || null,
         rating: m.rating ?? null,
-        total_bill: m.totalBill,
+        total_bill: m.totalBill ?? 0,
         paid_by: m.paidBy || null,
         shared_by: m.sharedBy || [],
       }))

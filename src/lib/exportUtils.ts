@@ -89,8 +89,11 @@ export function exportToCSV(trip: Trip) {
     const date = format(new Date(day.date), "dd/MM/yyyy");
 
     for (const m of day.meals || []) {
-      const share = m.sharedBy?.length ? (m.totalBill / m.sharedBy.length).toFixed(2) : m.totalBill.toFixed(2);
-      rows.push([date, m.restaurantName, "Refeição", m.totalBill.toFixed(2), getName(m.paidBy), (m.sharedBy || []).map(getName).join("; "), share]);
+      if ((m.totalBill ?? 0) > 0) {
+        const bill = m.totalBill!;
+        const share = m.sharedBy?.length ? (bill / m.sharedBy.length).toFixed(2) : bill.toFixed(2);
+        rows.push([date, m.mealName + (m.restaurantName ? ` - ${m.restaurantName}` : ""), "Refeição", bill.toFixed(2), getName(m.paidBy || ""), (m.sharedBy || []).map(getName).join("; "), share]);
+      }
     }
     for (const e of day.expenses || []) {
       const share = e.sharedBy?.length ? (e.amount / e.sharedBy.length).toFixed(2) : e.amount.toFixed(2);
@@ -133,12 +136,15 @@ export async function exportToExcel(trip: Trip) {
     const date = format(new Date(day.date), "dd/MM/yyyy");
 
     for (const m of day.meals || []) {
-      expenseRows.push({
-        Data: date, Nome: m.restaurantName, Categoria: "Refeição",
-        Valor: m.totalBill, "Pago por": getName(m.paidBy),
-        "Partilhado entre": (m.sharedBy || []).map(getName).join(", "),
-        "Quota por pessoa": m.sharedBy?.length ? +(m.totalBill / m.sharedBy.length).toFixed(2) : m.totalBill,
-      });
+      if ((m.totalBill ?? 0) > 0) {
+        const bill = m.totalBill!;
+        expenseRows.push({
+          Data: date, Nome: m.mealName + (m.restaurantName ? ` - ${m.restaurantName}` : ""), Categoria: "Refeição",
+          Valor: bill, "Pago por": getName(m.paidBy || ""),
+          "Partilhado entre": (m.sharedBy || []).map(getName).join(", "),
+          "Quota por pessoa": m.sharedBy?.length ? +(bill / m.sharedBy.length).toFixed(2) : bill,
+        });
+      }
     }
     for (const e of day.expenses || []) {
       expenseRows.push({
