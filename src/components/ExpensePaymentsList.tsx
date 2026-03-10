@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ExpensePayment, Participant } from "@/types/trip";
 import { getPaymentStatus } from "@/lib/expenseUtils";
-import { Plus, Check, Clock, Trash2 } from "lucide-react";
+import { Plus, Check, Clock, Trash2, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -15,9 +15,9 @@ interface Props {
 
 export function ExpensePaymentsList({ totalAmount, payments, participants, onChange }: Props) {
   const [showForm, setShowForm] = useState(false);
-  const [amount, setAmount] = useState("");
   const [paidBy, setPaidBy] = useState(participants[0]?.id || "");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [customAmount, setCustomAmount] = useState("");
 
   const getStatusFromDate = (d: string): "paid" | "pending" => {
     const today = new Date().toISOString().split("T")[0];
@@ -26,19 +26,27 @@ export function ExpensePaymentsList({ totalAmount, payments, participants, onCha
 
   const status = getStatusFromDate(date);
 
-  const { paid, remaining, hasPlan } = getPaymentStatus(totalAmount, payments);
+  const { paid, remaining } = getPaymentStatus(totalAmount, payments);
+  const totalAllocated = payments.reduce((s, p) => s + p.amount, 0);
+  const unallocated = Math.max(0, Math.round((totalAmount - totalAllocated) * 100) / 100);
+  const isFullyPaid = unallocated < 0.01 && remaining < 0.01;
+
+  // Default amount for new payment is whatever is unallocated
+  const effectiveAmount = customAmount !== "" ? customAmount : (unallocated > 0 ? unallocated.toFixed(2) : "");
+  const parsedAmount = parseFloat(effectiveAmount) || 0;
+  const wouldExceed = parsedAmount > unallocated + 0.01;
 
   const handleAdd = () => {
-    if (!amount || !paidBy) return;
+    if (!parsedAmount || !paidBy || wouldExceed) return;
     const newPayment: ExpensePayment = {
       id: crypto.randomUUID(),
-      amount: parseFloat(amount),
+      amount: Math.round(parsedAmount * 100) / 100,
       paidBy,
       date,
       status,
     };
     onChange([...payments, newPayment]);
-    setAmount("");
+    setCustomAmount("");
     setShowForm(false);
   };
 
@@ -63,24 +71,44 @@ export function ExpensePaymentsList({ totalAmount, payments, participants, onCha
     }
   };
 
+  const paidTotal = payments.filter(p => p.status === "paid").reduce((s, p) => s + p.amount, 0);
+  const pendingTotal = payments.filter(p => p.status === "pending").reduce((s, p) => s + p.amount, 0);
+  const hasPayments = payments.length > 0;
+
   return (
     <div className="space-y-2">
-      {/* Payment status bar */}
-      {hasPlan && (
+      {/* Progress summary */}
+      {hasPayments && (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">
-              {paid.toFixed(2)}€ pago
-              {remaining > 0.01 && (
-                <> · <span className="text-warning">{remaining.toFixed(2)}€ pendente</span></>
+              {paidTotal > 0 && <span className="text-success">{paidTotal.toFixed(2)}€ pago</span>}
+              {pendingTotal > 0.01 && (
+                <>{paidTotal > 0 && " · "}<span className="text-warning">{pendingTotal.toFixed(2)}€ pendente</span></>
+              )}
+              {unallocated > 0.01 && (
+                <>{(paidTotal > 0 || pendingTotal > 0.01) && " · "}<span className="text-muted-foreground">{unallocated.toFixed(2)}€ restante</span></>
               )}
             </span>
+            {isFullyPaid && (
+              <span className="text-[10px] font-medium text-success flex items-center gap-0.5">
+                <Check size={10} /> Totalmente pago
+              </span>
+            )}
           </div>
-          <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-            <div
-              className="h-full rounded-full bg-success transition-all duration-300"
-              style={{ width: `${Math.min((paid / totalAmount) * 100, 100)}%` }}
-            />
+          <div className="h-1.5 rounded-full bg-secondary overflow-hidden flex">
+            {paidTotal > 0 && (
+              <div
+                className="h-full bg-success transition-all duration-300"
+                style={{ width: `${Math.min((paidTotal / totalAmount) * 100, 100)}%` }}
+              />
+            )}
+            {pendingTotal > 0 && (
+              <div
+                className="h-full bg-warning transition-all duration-300"
+                style={{ width: `${Math.min((pendingTotal / totalAmount) * 100, 100)}%` }}
+              />
+            )}
           </div>
         </div>
       )}
@@ -130,11 +158,16 @@ export function ExpensePaymentsList({ totalAmount, payments, participants, onCha
               <Input
                 type="number"
                 step="0.01"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                placeholder={unallocated > 0 ? unallocated.toFixed(2) : "0.00"}
+                value={customAmount}
+                onChange={(e) => setCustomAmount(e.target.value)}
                 className="h-8 text-xs"
               />
+              {wouldExceed && (
+                <p className="text-[10px] text-destructive flex items-center gap-0.5">
+                  <AlertCircle size={10} /> Excede o valor restante ({unallocated.toFixed(2)}€)
+                </p>
+              )}
             </div>
             <div className="space-y-1">
               <Label className="text-[11px]">Data</Label>
@@ -187,21 +220,23 @@ export function ExpensePaymentsList({ totalAmount, payments, participants, onCha
             </div>
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleAdd} size="sm" className="h-7 text-xs flex-1" disabled={!amount || !paidBy}>
+            <Button onClick={handleAdd} size="sm" className="h-7 text-xs flex-1" disabled={!parsedAmount || !paidBy || wouldExceed}>
               Adicionar
             </Button>
-            <Button onClick={() => setShowForm(false)} size="sm" variant="ghost" className="h-7 text-xs">
+            <Button onClick={() => { setShowForm(false); setCustomAmount(""); }} size="sm" variant="ghost" className="h-7 text-xs">
               Cancelar
             </Button>
           </div>
         </div>
       ) : (
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors"
-        >
-          <Plus size={11} /> Adicionar pagamento
-        </button>
+        !isFullyPaid && (
+          <button
+            onClick={() => { setCustomAmount(""); setShowForm(true); }}
+            className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors"
+          >
+            <Plus size={11} /> Adicionar pagamento{unallocated > 0.01 && ` (${unallocated.toFixed(2)}€ restante)`}
+          </button>
+        )
       )}
     </div>
   );
