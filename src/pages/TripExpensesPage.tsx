@@ -4,6 +4,7 @@ import { ArrowLeft, Wallet, ArrowRight, Trash2, Pencil, Plane, Home, UtensilsCro
 import { Trip, Payment, ExpensePayment } from "@/types/trip";
 import { calculateBalances, calculateSettlements, calculateTripTotals } from "@/lib/expenseUtils";
 import { AddPaymentDialog } from "@/components/AddPaymentDialog";
+import { FinancialSummary } from "@/components/FinancialSummary";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { useState, useMemo } from "react";
