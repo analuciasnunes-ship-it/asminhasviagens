@@ -35,6 +35,7 @@ export function TripMapView({ trip, onNavigateToDay, onUpdateActivity, onDeleteA
   const markersLayer = useRef<L.LayerGroup | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null);
 
   // Collect all activities with locations
   const allMarkerActivities = useMemo<MarkerActivity[]>(() => {
