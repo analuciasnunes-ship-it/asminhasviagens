@@ -11,7 +11,7 @@ interface Props {
   onMarkerClick?: (activityId: string) => void;
 }
 
-export function DayMapView({ activities, participants, onUpdate, onDelete }: Props) {
+export function DayMapView({ activities, participants, onUpdate, onDelete, onMarkerClick }: Props) {
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
