@@ -139,7 +139,12 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
             <Label>Local a visitar</Label>
-            <Input placeholder="Ex: Torre de Belém" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <LocationAutocomplete
+              value={title}
+              onChange={setTitle}
+              onSelect={handleLocationSelect}
+              placeholder="Ex: Torre de Belém"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
