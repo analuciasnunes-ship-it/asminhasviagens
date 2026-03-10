@@ -210,27 +210,6 @@ const TripPage = () => {
                   </span>
                 ))}
               </div>
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Nome"
-                    value={newParticipantName}
-                    onChange={(e) => setNewParticipantName(e.target.value)}
-                    className="text-sm h-8"
-                  />
-                  <Input
-                    placeholder="Email (opcional)"
-                    type="email"
-                    value={newParticipantEmail}
-                    onChange={(e) => setNewParticipantEmail(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddParticipant())}
-                    className="text-sm h-8"
-                  />
-                  <Button variant="outline" size="sm" onClick={handleAddParticipant} disabled={!newParticipantName.trim()}>
-                    +
-                  </Button>
-                </div>
-              </div>
             </div>
 
             {/* Expense summary card */}
