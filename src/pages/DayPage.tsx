@@ -156,7 +156,7 @@ const DayPage = () => {
         />
 
         {/* Tabs for Timeline / Map */}
-        <Tabs defaultValue="timeline" className="mt-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
           <TabsList className="w-full">
             <TabsTrigger value="timeline" className="flex-1 gap-1.5">
               <List size={14} />
@@ -169,7 +169,6 @@ const DayPage = () => {
           </TabsList>
 
           <TabsContent value="timeline" className="mt-4">
-            {/* Activity Timeline */}
             <ActivityTimeline
               activities={day.activities}
               meals={dayMeals}
@@ -182,9 +181,9 @@ const DayPage = () => {
               onDeleteMeal={handleDeleteMeal}
               onUpdateExpense={handleUpdateExpense}
               onDeleteExpense={handleDeleteExpense}
+              highlightedActivityId={highlightedActivityId}
             />
 
-            {/* Add item menu */}
             <div className="pl-9 mt-2">
               <AddDayItemMenu
                 participants={participants}
@@ -201,6 +200,7 @@ const DayPage = () => {
               participants={participants}
               onUpdate={handleUpdateActivity}
               onDelete={handleDeleteActivity}
+              onMarkerClick={handleMarkerClick}
             />
           </TabsContent>
         </Tabs>
