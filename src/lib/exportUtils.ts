@@ -89,8 +89,11 @@ export function exportToCSV(trip: Trip) {
     const date = format(new Date(day.date), "dd/MM/yyyy");
 
     for (const m of day.meals || []) {
-      const share = m.sharedBy?.length ? (m.totalBill / m.sharedBy.length).toFixed(2) : m.totalBill.toFixed(2);
-      rows.push([date, m.restaurantName, "Refeição", m.totalBill.toFixed(2), getName(m.paidBy), (m.sharedBy || []).map(getName).join("; "), share]);
+      if ((m.totalBill ?? 0) > 0) {
+        const bill = m.totalBill!;
+        const share = m.sharedBy?.length ? (bill / m.sharedBy.length).toFixed(2) : bill.toFixed(2);
+        rows.push([date, m.mealName + (m.restaurantName ? ` - ${m.restaurantName}` : ""), "Refeição", bill.toFixed(2), getName(m.paidBy || ""), (m.sharedBy || []).map(getName).join("; "), share]);
+      }
     }
     for (const e of day.expenses || []) {
       const share = e.sharedBy?.length ? (e.amount / e.sharedBy.length).toFixed(2) : e.amount.toFixed(2);
