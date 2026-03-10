@@ -40,6 +40,10 @@ const AuthPage = () => {
     setLoading(true);
     try {
       if (mode === "signup") {
+        // Persist redirect for email confirmation flow
+        if (redirectTo && redirectTo !== "/") {
+          localStorage.setItem("auth_redirect", redirectTo);
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
