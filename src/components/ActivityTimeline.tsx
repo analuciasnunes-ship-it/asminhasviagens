@@ -232,18 +232,22 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
       const isDragging = dragIndex === actIdx;
       const isOver = overIndex === actIdx;
       const conflict = hasConflict(activity);
+      const isHighlighted = highlightedActivityId === activity.id;
 
       items.push(
         <div
           key={activity.id}
+          id={`activity-${activity.id}`}
           draggable={!isLocked}
           onDragStart={() => handleDragStart(actIdx, activity)}
           onDragOver={(e) => handleDragOver(e, actIdx)}
           onDrop={() => handleDrop(actIdx)}
           onDragEnd={handleDragEnd}
-          className={`flex items-stretch transition-all duration-200 ${
+          className={`flex items-stretch transition-all duration-200 rounded-lg ${
             isDragging ? "opacity-40 scale-[0.97]" : ""
-          } ${isOver && dragIndex !== null && dragIndex !== actIdx ? "translate-y-1" : ""}`}
+          } ${isOver && dragIndex !== null && dragIndex !== actIdx ? "translate-y-1" : ""} ${
+            isHighlighted ? "ring-2 ring-primary/50 bg-primary/5 animate-pulse" : ""
+          }`}
         >
           <div className="flex flex-col items-center w-6 shrink-0 mr-3">
             <div className={`w-[2px] flex-1 ${isFirst ? "bg-transparent" : conflict ? "bg-warning/30" : "bg-border"}`} />
