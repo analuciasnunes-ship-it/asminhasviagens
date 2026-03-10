@@ -55,6 +55,10 @@ const AuthPage = () => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
+      // Persist redirect path through OAuth flow
+      if (redirectTo && redirectTo !== "/") {
+        localStorage.setItem("auth_redirect", redirectTo);
+      }
       const { error } = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
