@@ -16,6 +16,9 @@ export type DurationLabel = typeof DURATION_OPTIONS[number]["label"];
 export interface Participant {
   id: string;
   name: string;
+  email?: string;
+  status?: "active" | "invited" | "pending";
+  userId?: string | null;
 }
 
 export interface ExpensePayment {
@@ -56,8 +59,8 @@ export interface Meal {
   notes?: string;
   rating?: number;
   totalBill: number;
-  paidBy: string; // participant id
-  sharedBy: string[]; // participant ids
+  paidBy: string;
+  sharedBy: string[];
   expensePayments?: ExpensePayment[];
 }
 
@@ -74,8 +77,8 @@ export interface Expense {
 
 export interface Payment {
   id: string;
-  from: string; // participant id
-  to: string; // participant id
+  from: string;
+  to: string;
   amount: number;
   date: string;
 }
