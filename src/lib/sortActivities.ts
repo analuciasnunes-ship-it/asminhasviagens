@@ -2,18 +2,22 @@ import { Activity } from "@/types/trip";
 
 export function sortActivities(activities: Activity[]): Activity[] {
   return [...activities].sort((a, b) => {
-    const timeA = a.time || "";
-    const timeB = b.time || "";
-
-    // Both have time → sort by time
-    if (timeA && timeB) return timeA.localeCompare(timeB);
-
-    // Both have no time → sort by orderIndex
-    if (!timeA && !timeB) {
-      return (a.orderIndex ?? 0) - (b.orderIndex ?? 0);
+    // If both have orderIndex, use it as primary sort
+    const aIdx = a.orderIndex;
+    const bIdx = b.orderIndex;
+    if (aIdx != null && bIdx != null) {
+      return aIdx - bIdx;
     }
 
-    // One has time, one doesn't → timed first
+    // If only one has orderIndex, it takes priority
+    if (aIdx != null && bIdx == null) return -1;
+    if (aIdx == null && bIdx != null) return 1;
+
+    // Neither has orderIndex: sort by time, untimed last
+    const timeA = a.time || "";
+    const timeB = b.time || "";
+    if (timeA && timeB) return timeA.localeCompare(timeB);
+    if (!timeA && !timeB) return 0;
     if (!timeA) return 1;
     return -1;
   });

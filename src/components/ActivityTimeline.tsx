@@ -84,8 +84,17 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
     ...meals.map((m): TimelineItem => ({ kind: "meal", data: m })),
     ...expenses.map((e): TimelineItem => ({ kind: "expense", data: e })),
   ].sort((a, b) => {
-    const timeA = a.kind === "activity" ? (a.data as Activity).time : a.kind === "meal" ? (a.data as Meal).time : undefined;
-    const timeB = b.kind === "activity" ? (b.data as Activity).time : b.kind === "meal" ? (b.data as Meal).time : undefined;
+    const actA = a.kind === "activity" ? (a.data as Activity) : null;
+    const actB = b.kind === "activity" ? (b.data as Activity) : null;
+    const timeA = actA?.time || (a.kind === "meal" ? (a.data as Meal).time : undefined);
+    const timeB = actB?.time || (b.kind === "meal" ? (b.data as Meal).time : undefined);
+    const idxA = actA?.orderIndex;
+    const idxB = actB?.orderIndex;
+
+    // Both activities with orderIndex → use orderIndex
+    if (actA && actB && idxA != null && idxB != null) return idxA - idxB;
+
+    // Time-based sort for items with time
     if (!timeA && !timeB) return 0;
     if (!timeA) return 1;
     if (!timeB) return -1;
