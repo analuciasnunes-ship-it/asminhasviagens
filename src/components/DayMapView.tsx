@@ -45,7 +45,7 @@ export function DayMapView({ activities, participants, onUpdate, onDelete, onMar
         {activitiesWithLocation.map((activity, index) => (
           <button
             key={activity.id}
-            onClick={() => setSelectedActivity(selectedActivity?.id === activity.id ? null : activity)}
+            onClick={() => onMarkerClick ? onMarkerClick(activity.id) : setSelectedActivity(selectedActivity?.id === activity.id ? null : activity)}
             className={`w-full text-left rounded-xl border p-3 transition-all ${
               selectedActivity?.id === activity.id
                 ? "bg-primary/10 border-primary/30"

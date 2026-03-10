@@ -75,7 +75,7 @@ function getGapMinutes(a: TimelineItem, b: TimelineItem): number | null {
   return diff > 30 ? diff : null;
 }
 
-export function ActivityTimeline({ activities, meals = [], expenses = [], participants = [], onUpdate, onDelete, onReorder, onUpdateMeal, onDeleteMeal, onUpdateExpense, onDeleteExpense }: Props) {
+export function ActivityTimeline({ activities, meals = [], expenses = [], participants = [], onUpdate, onDelete, onReorder, onUpdateMeal, onDeleteMeal, onUpdateExpense, onDeleteExpense, highlightedActivityId }: Props) {
   const sortedActivities = sortActivities(activities);
 
   // Build unified timeline
