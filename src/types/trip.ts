@@ -45,6 +45,7 @@ export interface Activity {
   rating?: number;
   comments?: string;
   expensePayments?: ExpensePayment[];
+  orderIndex?: number;
 }
 
 export interface Meal {

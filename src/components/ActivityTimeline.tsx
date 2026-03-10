@@ -141,16 +141,19 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
     const item = sorted[fromIdx];
     if (item.timeLocked) return;
 
-    // Calculate new time based on drop position
-    const target = sorted[dropIdx];
-    if (target?.time) {
-      onUpdate({ ...item, time: target.time });
-    }
+    // Reorder: move item from fromIdx to dropIdx without changing time
+    const reordered = [...sorted];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(dropIdx, 0, moved);
+
+    // Assign orderIndex to all activities to preserve new order
+    const updated = reordered.map((a, i) => ({ ...a, orderIndex: i }));
+    onReorder(updated);
 
     setDragIndex(null);
     setOverIndex(null);
     dragRef.current = null;
-  }, [sorted, onUpdate]);
+  }, [sorted, onReorder]);
 
   const handleDragEnd = useCallback(() => {
     setDragIndex(null);
@@ -279,7 +282,7 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
                   <AlertTriangle size={10} /> Conflito
                 </span>
               )}
-              {!isLocked && activity.time && (
+              {!isLocked && (
                 <GripVertical size={12} className="text-muted-foreground/20 ml-auto cursor-grab active:cursor-grabbing" />
               )}
             </div>
