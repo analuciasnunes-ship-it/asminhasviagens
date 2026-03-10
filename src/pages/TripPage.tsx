@@ -5,6 +5,7 @@ import { TripDetails } from "@/components/TripDetails";
 import { TripExpenseSummaryCard } from "@/components/TripExpenseSummaryCard";
 import { TodayView } from "@/components/TodayView";
 import { TripMapView } from "@/components/TripMapView";
+import { InviteParticipantsDialog } from "@/components/InviteParticipantsDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Trash2, Calendar, Users, MapPin, Clock, Map } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
