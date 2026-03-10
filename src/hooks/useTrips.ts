@@ -634,6 +634,13 @@ async function syncOtherDetails(trip: Trip) {
         shared_by: o.sharedBy || [],
       }))
     );
+
+    // Sync expense payments for other details
+    for (const o of details) {
+      if (o.expensePayments) {
+        await syncExpensePayments("other_detail", o.id, o.expensePayments);
+      }
+    }
   }
 }
 
