@@ -84,7 +84,7 @@ export function TripMapView({ trip, onNavigateToDay }: Props) {
       const bounds: L.LatLngTuple[] = [];
 
       await Promise.all(
-        filteredActivities.map(async ({ activity, dayNumber, indexInDay }) => {
+        filteredActivities.map(async ({ activity, dayNumber, dayId, indexInDay }) => {
           // Use stored coordinates first, fallback to runtime geocoding
           let coords: [number, number] | null = null;
           if (activity.lat != null && activity.lng != null) {
