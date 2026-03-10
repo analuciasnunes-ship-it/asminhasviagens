@@ -136,12 +136,15 @@ export async function exportToExcel(trip: Trip) {
     const date = format(new Date(day.date), "dd/MM/yyyy");
 
     for (const m of day.meals || []) {
-      expenseRows.push({
-        Data: date, Nome: m.restaurantName, Categoria: "Refeição",
-        Valor: m.totalBill, "Pago por": getName(m.paidBy),
-        "Partilhado entre": (m.sharedBy || []).map(getName).join(", "),
-        "Quota por pessoa": m.sharedBy?.length ? +(m.totalBill / m.sharedBy.length).toFixed(2) : m.totalBill,
-      });
+      if ((m.totalBill ?? 0) > 0) {
+        const bill = m.totalBill!;
+        expenseRows.push({
+          Data: date, Nome: m.mealName + (m.restaurantName ? ` - ${m.restaurantName}` : ""), Categoria: "Refeição",
+          Valor: bill, "Pago por": getName(m.paidBy || ""),
+          "Partilhado entre": (m.sharedBy || []).map(getName).join(", "),
+          "Quota por pessoa": m.sharedBy?.length ? +(bill / m.sharedBy.length).toFixed(2) : bill,
+        });
+      }
     }
     for (const e of day.expenses || []) {
       expenseRows.push({
