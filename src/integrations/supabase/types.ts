@@ -382,6 +382,7 @@ export type Database = {
           created_at: string
           day_id: string
           id: string
+          meal_name: string
           notes: string | null
           paid_by: string | null
           rating: number | null
@@ -395,10 +396,11 @@ export type Database = {
           created_at?: string
           day_id: string
           id?: string
+          meal_name?: string
           notes?: string | null
           paid_by?: string | null
           rating?: number | null
-          restaurant_name: string
+          restaurant_name?: string
           shared_by?: string[] | null
           time?: string | null
           total_bill?: number
@@ -408,6 +410,7 @@ export type Database = {
           created_at?: string
           day_id?: string
           id?: string
+          meal_name?: string
           notes?: string | null
           paid_by?: string | null
           rating?: number | null
