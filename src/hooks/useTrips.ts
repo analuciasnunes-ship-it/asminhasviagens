@@ -603,6 +603,13 @@ async function syncRentalCars(trip: Trip) {
         shared_by: r.sharedBy || [],
       }))
     );
+
+    // Sync expense payments for rental cars
+    for (const r of trip.rentalCars) {
+      if (r.expensePayments) {
+        await syncExpensePayments("rental_car", r.id, r.expensePayments);
+      }
+    }
   }
 }
 
