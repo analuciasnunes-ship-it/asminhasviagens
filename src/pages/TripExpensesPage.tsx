@@ -340,7 +340,7 @@ const TripExpensesPage = () => {
           )}
         </header>
 
-        <FinancialSummary trip={trip} />
+        <FinancialSummary trip={trip} onSettlementComplete={handleAddPayment} />
 
         <Tabs defaultValue="balance" className="w-full">
           <TabsList className="w-full grid grid-cols-4 mb-4">
