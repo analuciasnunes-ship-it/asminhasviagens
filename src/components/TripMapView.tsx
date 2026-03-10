@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Trip, Activity } from "@/types/trip";
-import { MapPin, Clock } from "lucide-react";
+import { Trip, Activity, Participant } from "@/types/trip";
+import { MapPin, Clock, ChevronDown } from "lucide-react";
 import { geocodeLocation } from "@/lib/geocode";
 import { getDayColor } from "@/lib/dayColors";
+import { ActivityCard } from "./ActivityCard";
 
 // Fix default marker icons for Leaflet in bundled environments
 delete (L.Icon.Default.prototype as any)._getIconUrl;
