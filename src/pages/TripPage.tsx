@@ -232,7 +232,6 @@ const TripPage = () => {
                 </div>
               </div>
             </div>
-            </div>
 
             {/* Expense summary card */}
             <div className="mb-6">
