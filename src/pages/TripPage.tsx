@@ -9,6 +9,7 @@ import { InviteParticipantsDialog } from "@/components/InviteParticipantsDialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Trash2, Calendar, Users, MapPin, Clock, Map } from "lucide-react";
 import { EditTripDialog } from "@/components/EditTripDialog";
+import { ExportTripDialog } from "@/components/ExportTripDialog";
 import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Flight, Accommodation, RentalCar, OtherDetail, Participant, Activity } from "@/types/trip";
@@ -120,6 +121,7 @@ const TripPage = () => {
             <ArrowLeft size={16} /> Voltar
           </button>
           <div className="flex items-center gap-2">
+            <ExportTripDialog trip={trip} />
             <EditTripDialog trip={trip} onUpdate={updateTrip} />
             <button
               onClick={handleDelete}
