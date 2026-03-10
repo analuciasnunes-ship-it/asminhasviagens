@@ -540,6 +540,13 @@ async function syncFlights(trip: Trip) {
         shared_by: f.sharedBy || [],
       }))
     );
+
+    // Sync expense payments for flights
+    for (const f of trip.flights) {
+      if (f.expensePayments) {
+        await syncExpensePayments("flight", f.id, f.expensePayments);
+      }
+    }
   }
 }
 
