@@ -91,23 +91,6 @@ const DayPage = () => {
   const handleUpdateCar = (c: RentalCar) => updateDay({ rentalCars: dayRentalCars.map((x) => x.id === c.id ? c : x) });
   const handleUpdateOther = (o: OtherDetail) => updateDay({ otherDetails: dayOtherDetails.map((x) => x.id === o.id ? o : x) });
 
-  const [activeTab, setActiveTab] = useState("timeline");
-  const [highlightedActivityId, setHighlightedActivityId] = useState<string | null>(null);
-
-  const handleMarkerClick = useCallback((activityId: string) => {
-    setActiveTab("timeline");
-    setHighlightedActivityId(activityId);
-    // Allow tab switch to render, then scroll
-    setTimeout(() => {
-      const el = document.getElementById(`activity-${activityId}`);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        // Clear highlight after animation
-        setTimeout(() => setHighlightedActivityId(null), 2000);
-      }
-    }, 100);
-  }, []);
-
 
   return (
     <div className="min-h-screen bg-background">
