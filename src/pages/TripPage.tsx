@@ -62,13 +62,11 @@ const TripPage = () => {
     }
   };
 
-  const handleAddParticipant = async () => {
-    const name = newParticipantName.trim();
-    const email = newParticipantEmail.trim().toLowerCase();
+  const handleAddParticipant = async (name: string, emailRaw: string) => {
+    const email = emailRaw.trim().toLowerCase();
     if (!name) return;
     if (participants.some((p) => p.name === name || (email && p.email === email))) return;
 
-    // Check if email belongs to an existing user
     let userId: string | null = null;
     let status: "active" | "invited" = "invited";
     if (email) {
@@ -85,8 +83,6 @@ const TripPage = () => {
 
     const p: Participant = { id: crypto.randomUUID(), name, email: email || undefined, status, userId };
     updateTrip({ ...trip, participants: [...participants, p] });
-    setNewParticipantName("");
-    setNewParticipantEmail("");
   };
 
   const handleRemoveParticipant = (pid: string) => {
