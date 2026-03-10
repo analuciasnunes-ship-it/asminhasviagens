@@ -23,6 +23,7 @@ interface Props {
   onDeleteMeal?: (id: string) => void;
   onUpdateExpense?: (expense: Expense) => void;
   onDeleteExpense?: (id: string) => void;
+  highlightedActivityId?: string | null;
 }
 
 function formatGap(minutes: number): string {
