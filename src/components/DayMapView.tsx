@@ -108,7 +108,7 @@ export function DayMapView({ activities, participants, onUpdate, onDelete, onMar
 
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => openGoogleMaps(selectedActivity.location!)}
+              onClick={() => openGoogleMaps(selectedActivity)}
               className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
             >
               <MapPin size={16} />
