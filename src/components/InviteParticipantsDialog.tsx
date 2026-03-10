@@ -113,14 +113,28 @@ export function InviteParticipantsDialog({ tripId, inviteToken, tripName, onAddP
 
             {/* Share buttons */}
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={handleWhatsApp}>
-                <MessageCircle size={14} />
-                WhatsApp
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={handleEmail}>
-                <Mail size={14} />
-                Email
-              </Button>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(inviteMessage)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1"
+              >
+                <Button variant="outline" size="sm" className="w-full gap-1.5" type="button">
+                  <MessageCircle size={14} />
+                  WhatsApp
+                </Button>
+              </a>
+              <a
+                href={`mailto:?subject=${encodeURIComponent(`Convite para viagem: ${tripName}`)}&body=${encodeURIComponent(inviteMessage)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1"
+              >
+                <Button variant="outline" size="sm" className="w-full gap-1.5" type="button">
+                  <Mail size={14} />
+                  Email
+                </Button>
+              </a>
               <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={handleShare}>
                 <Share2 size={14} />
                 Partilhar
