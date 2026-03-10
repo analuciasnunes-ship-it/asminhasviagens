@@ -8,6 +8,7 @@ interface Props {
   participants: Participant[];
   onUpdate: (activity: Activity) => void;
   onDelete: (id: string) => void;
+  onMarkerClick?: (activityId: string) => void;
 }
 
 export function DayMapView({ activities, participants, onUpdate, onDelete }: Props) {
