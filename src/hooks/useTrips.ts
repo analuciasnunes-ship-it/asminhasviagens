@@ -472,6 +472,13 @@ async function syncMeals(day: DayPlan) {
         shared_by: m.sharedBy || [],
       }))
     );
+
+    // Sync expense payments for meals
+    for (const m of dayMeals) {
+      if (m.expensePayments) {
+        await syncExpensePayments("meal", m.id, m.expensePayments);
+      }
+    }
   }
 }
 
