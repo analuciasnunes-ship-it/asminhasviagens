@@ -119,12 +119,15 @@ const TripPage = () => {
           >
             <ArrowLeft size={16} /> Voltar
           </button>
-          <button
-            onClick={handleDelete}
-            className="text-white/40 hover:text-destructive transition-colors backdrop-blur-sm bg-black/20 rounded-full p-2"
-          >
-            <Trash2 size={16} />
-          </button>
+          <div className="flex items-center gap-2">
+            <EditTripDialog trip={trip} onUpdate={updateTrip} />
+            <button
+              onClick={handleDelete}
+              className="text-white/40 hover:text-destructive transition-colors backdrop-blur-sm bg-black/20 rounded-full p-2"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-6 z-10">
