@@ -18,7 +18,13 @@ export function ExpensePaymentsList({ totalAmount, payments, participants, onCha
   const [amount, setAmount] = useState("");
   const [paidBy, setPaidBy] = useState(participants[0]?.id || "");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [status, setStatus] = useState<"paid" | "pending">("paid");
+
+  const getStatusFromDate = (d: string): "paid" | "pending" => {
+    const today = new Date().toISOString().split("T")[0];
+    return d <= today ? "paid" : "pending";
+  };
+
+  const status = getStatusFromDate(date);
 
   const { paid, remaining, hasPlan } = getPaymentStatus(totalAmount, payments);
 
