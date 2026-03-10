@@ -108,8 +108,9 @@ interface PendingPaymentItem {
   status: "pending";
 }
 
-function usePendingPayments(trip: Trip): PendingPaymentItem[] {
+function usePendingPayments(trip: Trip | undefined): PendingPaymentItem[] {
   return useMemo(() => {
+    if (!trip) return [];
     const pendingItems: PendingPaymentItem[] = [];
     const participants = trip.participants || [];
 
