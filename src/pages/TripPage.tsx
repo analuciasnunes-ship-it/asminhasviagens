@@ -12,9 +12,6 @@ import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Flight, Accommodation, RentalCar, OtherDetail, Participant, Activity } from "@/types/trip";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 const TripPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,8 +19,8 @@ const TripPage = () => {
   const { getTrip, updateTrip, deleteTrip } = useTrips();
   const trip = getTrip(id!);
 
-  const [newParticipantName, setNewParticipantName] = useState("");
-  const [newParticipantEmail, setNewParticipantEmail] = useState("");
+
+
 
   if (!trip) {
     return (
@@ -62,13 +59,11 @@ const TripPage = () => {
     }
   };
 
-  const handleAddParticipant = async () => {
-    const name = newParticipantName.trim();
-    const email = newParticipantEmail.trim().toLowerCase();
+  const handleAddParticipant = async (name: string, emailRaw: string) => {
+    const email = emailRaw.trim().toLowerCase();
     if (!name) return;
     if (participants.some((p) => p.name === name || (email && p.email === email))) return;
 
-    // Check if email belongs to an existing user
     let userId: string | null = null;
     let status: "active" | "invited" = "invited";
     if (email) {
@@ -85,8 +80,6 @@ const TripPage = () => {
 
     const p: Participant = { id: crypto.randomUUID(), name, email: email || undefined, status, userId };
     updateTrip({ ...trip, participants: [...participants, p] });
-    setNewParticipantName("");
-    setNewParticipantEmail("");
   };
 
   const handleRemoveParticipant = (pid: string) => {
@@ -185,6 +178,9 @@ const TripPage = () => {
                   tripId={trip.id}
                   inviteToken={trip.inviteToken}
                   tripName={trip.destination}
+                  onAddParticipant={async (name, email) => {
+                    await handleAddParticipant(name, email);
+                  }}
                 />
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -209,27 +205,6 @@ const TripPage = () => {
                     <button onClick={() => handleRemoveParticipant(p.id)} className="text-muted-foreground hover:text-destructive transition-colors">×</button>
                   </span>
                 ))}
-              </div>
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Nome"
-                    value={newParticipantName}
-                    onChange={(e) => setNewParticipantName(e.target.value)}
-                    className="text-sm h-8"
-                  />
-                  <Input
-                    placeholder="Email (opcional)"
-                    type="email"
-                    value={newParticipantEmail}
-                    onChange={(e) => setNewParticipantEmail(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddParticipant())}
-                    className="text-sm h-8"
-                  />
-                  <Button variant="outline" size="sm" onClick={handleAddParticipant} disabled={!newParticipantName.trim()}>
-                    +
-                  </Button>
-                </div>
               </div>
             </div>
 
