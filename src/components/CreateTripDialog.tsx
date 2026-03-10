@@ -52,7 +52,7 @@ export function CreateTripDialog({ onCreateTrip }: Props) {
       startDate,
       endDate,
       coverImage: coverImage || undefined,
-      participants: participantNames.map((name) => ({ id: crypto.randomUUID(), name })),
+      participants: participantNames.map((p) => ({ id: crypto.randomUUID(), name: p.name, email: p.email, status: "invited" as const })),
       flights: [],
       accommodations: [],
       rentalCars: [],
