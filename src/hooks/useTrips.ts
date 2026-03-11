@@ -95,7 +95,7 @@ export function useTrips() {
 
       // Assemble trips
       const assembledTrips: Trip[] = tripsData.map(t => {
-        const tripParticipants: Participant[] = (participants || [])
+        const tripParticipantsRaw = (participants || [])
           .filter(p => p.trip_id === t.id)
           .map(p => ({
             id: p.id,
@@ -104,6 +104,17 @@ export function useTrips() {
             status: p.status as Participant["status"],
             userId: p.profile_id,
           }));
+
+        // Deduplicate by profile_id (userId), keeping the first occurrence
+        const seen = new Set<string>();
+        const tripParticipants: Participant[] = [];
+        for (const p of tripParticipantsRaw) {
+          const key = p.userId || p.id; // use id for participants without a profile
+          if (!seen.has(key)) {
+            seen.add(key);
+            tripParticipants.push(p);
+          }
+        }
 
         const tripDays: DayPlan[] = (days || [])
           .filter(d => d.trip_id === t.id)
