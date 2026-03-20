@@ -69,7 +69,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       setLink("");
       setLocation("");
       setDuration("");
-      setPaidBy("");
+      setPaidBy(currentParticipantId);
       setSharedBy(participants.map((p) => p.id));
       setExpensePayments([]);
       setSelectedLat(undefined);

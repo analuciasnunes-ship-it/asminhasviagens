@@ -50,7 +50,7 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger, ed
       setDescription("");
       setAmount("");
       setNotes("");
-      setPaidBy(participants[0]?.id || "");
+      setPaidBy(currentParticipantId);
       setSharedBy(participants.map((p) => p.id));
       setExpensePayments([]);
     }
