@@ -8,6 +8,7 @@ import { UtensilsCrossed, ChevronDown, ChevronUp } from "lucide-react";
 import { Meal, Participant, ExpensePayment } from "@/types/trip";
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
 import { ExpenseSplitFields } from "./ExpenseSplitFields";
+import { useCurrentParticipantId } from "@/hooks/useCurrentParticipant";
 
 const MEAL_TYPES = ["Pequeno-almoço", "Almoço", "Lanche", "Jantar", "Snack"];
 
@@ -25,13 +26,15 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
 
+  const currentParticipantId = useCurrentParticipantId(participants);
+
   const [time, setTime] = useState("");
   const [mealName, setMealName] = useState("");
   const [restaurantName, setRestaurantName] = useState("");
   const [notes, setNotes] = useState("");
   const [showExpense, setShowExpense] = useState(false);
   const [totalBill, setTotalBill] = useState("");
-  const [paidBy, setPaidBy] = useState(participants[0]?.id || "");
+  const [paidBy, setPaidBy] = useState(currentParticipantId);
   const [sharedBy, setSharedBy] = useState<string[]>(participants.map((p) => p.id));
   const [expensePayments, setExpensePayments] = useState<ExpensePayment[]>([]);
 
@@ -44,7 +47,7 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
       const hasExpense = (editMeal.totalBill ?? 0) > 0;
       setShowExpense(hasExpense);
       setTotalBill(hasExpense ? editMeal.totalBill!.toString() : "");
-      setPaidBy(editMeal.paidBy || participants[0]?.id || "");
+      setPaidBy(editMeal.paidBy || currentParticipantId);
       setSharedBy(editMeal.sharedBy?.length ? editMeal.sharedBy : participants.map((p) => p.id));
       setExpensePayments(editMeal.expensePayments || []);
     } else if (open && !editMeal) {
@@ -54,7 +57,7 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
       setNotes("");
       setShowExpense(false);
       setTotalBill("");
-      setPaidBy(participants[0]?.id || "");
+      setPaidBy(currentParticipantId);
       setSharedBy(participants.map((p) => p.id));
       setExpensePayments([]);
     }

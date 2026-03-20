@@ -9,6 +9,7 @@ import { Activity, Participant, DURATION_OPTIONS, DurationLabel, ExpensePayment 
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
 import { ExpenseSplitFields } from "./ExpenseSplitFields";
 import { geocodeLocation } from "@/lib/geocode";
+import { useCurrentParticipantId } from "@/hooks/useCurrentParticipant";
 import { LocationAutocomplete } from "./LocationAutocomplete";
 
 interface Props {
@@ -25,6 +26,8 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
 
+  const currentParticipantId = useCurrentParticipantId(participants);
+
   const [title, setTitle] = useState("");
   const [time, setTime] = useState("");
   const [description, setDescription] = useState("");
@@ -32,8 +35,8 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
   const [link, setLink] = useState("");
   const [location, setLocation] = useState("");
   const [duration, setDuration] = useState<DurationLabel | "">("");
-  const [paidBy, setPaidBy] = useState("");
-  const [sharedBy, setSharedBy] = useState<string[]>([]);
+  const [paidBy, setPaidBy] = useState(currentParticipantId);
+  const [sharedBy, setSharedBy] = useState<string[]>(participants.map((p) => p.id));
   const [expensePayments, setExpensePayments] = useState<ExpensePayment[]>([]);
   const [selectedLat, setSelectedLat] = useState<number | undefined>();
   const [selectedLng, setSelectedLng] = useState<number | undefined>();
@@ -66,7 +69,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
       setLink("");
       setLocation("");
       setDuration("");
-      setPaidBy("");
+      setPaidBy(currentParticipantId);
       setSharedBy(participants.map((p) => p.id));
       setExpensePayments([]);
       setSelectedLat(undefined);

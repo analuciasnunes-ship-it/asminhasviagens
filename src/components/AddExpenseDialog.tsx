@@ -8,6 +8,7 @@ import { ShoppingCart, Receipt } from "lucide-react";
 import { Expense, Participant, ExpensePayment } from "@/types/trip";
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
 import { ExpenseSplitFields } from "./ExpenseSplitFields";
+import { useCurrentParticipantId } from "@/hooks/useCurrentParticipant";
 
 interface Props {
   participants: Participant[];
@@ -24,6 +25,8 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger, ed
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
 
+  const currentParticipantId = useCurrentParticipantId(participants);
+
   const isSupermarket = expenseType === "supermarket";
   const Icon = isSupermarket ? ShoppingCart : Receipt;
   const label = isSupermarket ? "Supermercado" : "Outra Despesa";
@@ -31,7 +34,7 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger, ed
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
-  const [paidBy, setPaidBy] = useState(participants[0]?.id || "");
+  const [paidBy, setPaidBy] = useState(currentParticipantId);
   const [sharedBy, setSharedBy] = useState<string[]>(participants.map((p) => p.id));
   const [expensePayments, setExpensePayments] = useState<ExpensePayment[]>([]);
 
@@ -47,7 +50,7 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger, ed
       setDescription("");
       setAmount("");
       setNotes("");
-      setPaidBy(participants[0]?.id || "");
+      setPaidBy(currentParticipantId);
       setSharedBy(participants.map((p) => p.id));
       setExpensePayments([]);
     }
