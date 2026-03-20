@@ -14,6 +14,7 @@ import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Flight, Accommodation, RentalCar, OtherDetail, Participant, Activity } from "@/types/trip";
 import { supabase } from "@/integrations/supabase/client";
+import { calculateTotalTripCost } from "@/lib/tripCostUtils";
 
 const TripPage = () => {
   const { id } = useParams<{ id: string }>();
