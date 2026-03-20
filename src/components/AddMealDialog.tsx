@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { UtensilsCrossed, ChevronDown, ChevronUp } from "lucide-react";
 import { Meal, Participant, ExpensePayment } from "@/types/trip";
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
+import { ExpenseSplitFields } from "./ExpenseSplitFields";
 
 const MEAL_TYPES = ["Pequeno-almoço", "Almoço", "Lanche", "Jantar", "Snack"];
 
@@ -83,9 +83,7 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
     setOpen(false);
   };
 
-  const toggleShared = (id: string) => {
-    setSharedBy((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  };
+  // toggleShared handled by ExpenseSplitFields
 
   const billNum = totalBill ? parseFloat(totalBill) : 0;
   const perPerson = billNum > 0 && sharedBy.length > 0 ? billNum / sharedBy.length : 0;
@@ -175,51 +173,15 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
 
                 {billNum > 0 && (
                   <>
-                    <div className="space-y-2">
-                      <Label>Quem pagou *</Label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {participants.map((p) => (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => setPaidBy(p.id)}
-                            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                              paidBy === p.id
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "bg-secondary text-muted-foreground border-border hover:border-primary/30"
-                            }`}
-                          >
-                            {p.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label>Dividir entre *</Label>
-                        <div className="flex gap-2">
-                          <button type="button" onClick={() => setSharedBy(participants.map((p) => p.id))} className="text-xs text-primary hover:underline">Todos</button>
-                          <button type="button" onClick={() => setSharedBy([])} className="text-xs text-muted-foreground hover:underline">Limpar</button>
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        {participants.map((p) => (
-                          <label key={p.id} className="flex items-center gap-2 text-sm">
-                            <Checkbox
-                              checked={sharedBy.includes(p.id)}
-                              onCheckedChange={() => toggleShared(p.id)}
-                            />
-                            {p.name}
-                          </label>
-                        ))}
-                      </div>
-                      {perPerson > 0 && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {perPerson.toFixed(2)}€ por pessoa
-                        </p>
-                      )}
-                    </div>
+                    <ExpenseSplitFields
+                      participants={participants}
+                      paidBy={paidBy}
+                      sharedBy={sharedBy}
+                      onPaidByChange={setPaidBy}
+                      onSharedByChange={setSharedBy}
+                      totalAmount={billNum}
+                      required
+                    />
 
                     {/* Payments section */}
                     <div className="space-y-2">

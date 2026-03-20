@@ -14,6 +14,7 @@ import { format, differenceInDays } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Flight, Accommodation, RentalCar, OtherDetail, Participant, Activity } from "@/types/trip";
 import { supabase } from "@/integrations/supabase/client";
+import { calculateTotalTripCost } from "@/lib/tripCostUtils";
 
 const TripPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,15 +35,7 @@ const TripPage = () => {
 
   const participants = trip.participants || [];
 
-  const totalCost = trip.days.reduce(
-    (sum, day) => {
-      const actCost = day.activities.reduce((s, a) => s + (a.cost || 0), 0);
-      const mealCost = (day.meals || []).reduce((s, m) => s + (m.totalBill ?? 0), 0);
-      const expCost = (day.expenses || []).reduce((s, e) => s + e.amount, 0);
-      return sum + actCost + mealCost + expCost;
-    },
-    0
-  );
+  const totalCost = calculateTotalTripCost(trip);
 
   const numDays = differenceInDays(new Date(trip.endDate), new Date(trip.startDate)) + 1;
   const dateRange = `${format(new Date(trip.startDate), "d MMM", { locale: pt })} – ${format(new Date(trip.endDate), "d MMM yyyy", { locale: pt })}`;

@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Flight, Accommodation, RentalCar, OtherDetail, Participant, ExpensePayment } from "@/types/trip";
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
 import { PaymentStatusBadge } from "./ExpensePaymentsList";
+import { ExpenseSplitFields } from "./ExpenseSplitFields";
 import { Plane, Hotel, Car, Package, Plus, Trash2, ArrowLeftRight, ArrowRight, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -44,58 +44,7 @@ interface Props {
 const emptyRoundtrip = { origin: "", destination: "", departureTime: "", arrivalTime: "", returnDepartureTime: "", returnArrivalTime: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] };
 const emptyOneway = { origin: "", destination: "", flightNumber: "", departureTime: "", arrivalTime: "", price: "", paidBy: "", sharedBy: [] as string[], expensePayments: [] as ExpensePayment[] };
 
-function ExpenseSplitFields({ participants, paidBy, sharedBy, onPaidByChange, onSharedByChange }: {
-  participants: Participant[];
-  paidBy: string;
-  sharedBy: string[];
-  onPaidByChange: (id: string) => void;
-  onSharedByChange: (ids: string[]) => void;
-}) {
-  if (participants.length === 0) return null;
-  const toggleShared = (id: string) => {
-    onSharedByChange(sharedBy.includes(id) ? sharedBy.filter((x) => x !== id) : [...sharedBy, id]);
-  };
-  return (
-    <>
-      <div className="space-y-1">
-        <Label className="text-xs">Quem pagou</Label>
-        <div className="flex flex-wrap gap-1.5">
-          {participants.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => onPaidByChange(p.id)}
-              className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                paidBy === p.id
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-secondary text-muted-foreground border-border hover:border-primary/30"
-              }`}
-            >
-              {p.name}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="space-y-1">
-        <div className="flex items-center justify-between">
-          <Label className="text-xs">Dividir entre</Label>
-          <div className="flex gap-2">
-            <button type="button" onClick={() => onSharedByChange(participants.map((p) => p.id))} className="text-[11px] text-primary hover:underline">Todos</button>
-            <button type="button" onClick={() => onSharedByChange([])} className="text-[11px] text-muted-foreground hover:underline">Limpar</button>
-          </div>
-        </div>
-        <div className="space-y-1">
-          {participants.map((p) => (
-            <label key={p.id} className="flex items-center gap-2 text-xs">
-              <Checkbox checked={sharedBy.includes(p.id)} onCheckedChange={() => toggleShared(p.id)} />
-              {p.name}
-            </label>
-          ))}
-        </div>
-      </div>
-    </>
-  );
-}
+// ExpenseSplitFields is now imported from shared component
 
 function SplitInfo({ participants, paidBy, sharedBy, price }: {
   participants: Participant[];
