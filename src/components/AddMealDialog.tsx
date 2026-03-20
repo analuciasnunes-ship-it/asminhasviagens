@@ -26,13 +26,15 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
 
+  const currentParticipantId = useCurrentParticipantId(participants);
+
   const [time, setTime] = useState("");
   const [mealName, setMealName] = useState("");
   const [restaurantName, setRestaurantName] = useState("");
   const [notes, setNotes] = useState("");
   const [showExpense, setShowExpense] = useState(false);
   const [totalBill, setTotalBill] = useState("");
-  const [paidBy, setPaidBy] = useState(participants[0]?.id || "");
+  const [paidBy, setPaidBy] = useState(currentParticipantId);
   const [sharedBy, setSharedBy] = useState<string[]>(participants.map((p) => p.id));
   const [expensePayments, setExpensePayments] = useState<ExpensePayment[]>([]);
 
