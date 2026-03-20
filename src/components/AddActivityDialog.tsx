@@ -77,9 +77,7 @@ export function AddActivityDialog({ onAdd, trigger, participants = [], editActiv
   const costNum = cost ? parseFloat(cost) : 0;
   const perPerson = sharedBy.length > 0 && costNum > 0 ? costNum / sharedBy.length : 0;
 
-  const toggleShared = (pid: string) => {
-    setSharedBy((prev) => prev.includes(pid) ? prev.filter((x) => x !== pid) : [...prev, pid]);
-  };
+  // toggleShared handled by ExpenseSplitFields
 
   const handleSubmit = async () => {
     if (!title) return;
