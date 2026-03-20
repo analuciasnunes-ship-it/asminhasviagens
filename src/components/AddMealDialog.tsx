@@ -83,9 +83,7 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
     setOpen(false);
   };
 
-  const toggleShared = (id: string) => {
-    setSharedBy((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  };
+  // toggleShared handled by ExpenseSplitFields
 
   const billNum = totalBill ? parseFloat(totalBill) : 0;
   const perPerson = billNum > 0 && sharedBy.length > 0 ? billNum / sharedBy.length : 0;
