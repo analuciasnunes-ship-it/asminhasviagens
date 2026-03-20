@@ -68,9 +68,7 @@ export function AddExpenseDialog({ participants, expenseType, onAdd, trigger, ed
     setOpen(false);
   };
 
-  const toggleShared = (id: string) => {
-    setSharedBy((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  };
+  // toggleShared handled by ExpenseSplitFields
 
   const perPerson = amount && sharedBy.length > 0 ? parseFloat(amount) / sharedBy.length : 0;
   const isEdit = !!editExpense;
