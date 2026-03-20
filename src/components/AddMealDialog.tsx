@@ -47,7 +47,7 @@ export function AddMealDialog({ participants, onAdd, trigger, editMeal, open: co
       const hasExpense = (editMeal.totalBill ?? 0) > 0;
       setShowExpense(hasExpense);
       setTotalBill(hasExpense ? editMeal.totalBill!.toString() : "");
-      setPaidBy(editMeal.paidBy || participants[0]?.id || "");
+      setPaidBy(editMeal.paidBy || currentParticipantId);
       setSharedBy(editMeal.sharedBy?.length ? editMeal.sharedBy : participants.map((p) => p.id));
       setExpensePayments(editMeal.expensePayments || []);
     } else if (open && !editMeal) {
