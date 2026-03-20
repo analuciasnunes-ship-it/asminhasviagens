@@ -198,16 +198,15 @@ const DayPage = () => {
               onUpdateExpense={handleUpdateExpense}
               onDeleteExpense={handleDeleteExpense}
               highlightedActivityId={highlightedActivityId}
+              topSlot={
+                <AddDayItemMenu
+                  participants={participants}
+                  onAddActivity={handleAddActivity}
+                  onAddMeal={handleAddMeal}
+                  onAddExpense={handleAddExpense}
+                />
+              }
             />
-
-            <div className="pl-9 mt-2">
-              <AddDayItemMenu
-                participants={participants}
-                onAddActivity={handleAddActivity}
-                onAddMeal={handleAddMeal}
-                onAddExpense={handleAddExpense}
-              />
-            </div>
           </TabsContent>
 
           <TabsContent value="map" className="mt-4">

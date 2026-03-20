@@ -3,7 +3,7 @@ import { ActivityCard } from "./ActivityCard";
 import { MealCard } from "./MealCard";
 import { ExpenseCard } from "./ExpenseCard";
 import { sortActivities } from "@/lib/sortActivities";
-import { Lock, GripVertical, AlertTriangle, UtensilsCrossed, ShoppingCart, Receipt } from "lucide-react";
+import { Lock, GripVertical, AlertTriangle, UtensilsCrossed, ShoppingCart, Receipt, Clock } from "lucide-react";
 import { useState, useRef, useCallback } from "react";
 
 type TimelineItem =
@@ -24,6 +24,7 @@ interface Props {
   onUpdateExpense?: (expense: Expense) => void;
   onDeleteExpense?: (id: string) => void;
   highlightedActivityId?: string | null;
+  topSlot?: React.ReactNode;
 }
 
 function formatGap(minutes: number): string {
@@ -75,35 +76,35 @@ function getGapMinutes(a: TimelineItem, b: TimelineItem): number | null {
   return diff > 30 ? diff : null;
 }
 
-export function ActivityTimeline({ activities, meals = [], expenses = [], participants = [], onUpdate, onDelete, onReorder, onUpdateMeal, onDeleteMeal, onUpdateExpense, onDeleteExpense, highlightedActivityId }: Props) {
+export function ActivityTimeline({ activities, meals = [], expenses = [], participants = [], onUpdate, onDelete, onReorder, onUpdateMeal, onDeleteMeal, onUpdateExpense, onDeleteExpense, highlightedActivityId, topSlot }: Props) {
   const sortedActivities = sortActivities(activities);
 
-  // Build unified timeline
-  const timelineItems: TimelineItem[] = [
+  // Build unified timeline — split into timed and untimed
+  const allItems: TimelineItem[] = [
     ...sortedActivities.map((a): TimelineItem => ({ kind: "activity", data: a })),
     ...meals.map((m): TimelineItem => ({ kind: "meal", data: m })),
     ...expenses.map((e): TimelineItem => ({ kind: "expense", data: e })),
-  ].sort((a, b) => {
-    const actA = a.kind === "activity" ? (a.data as Activity) : null;
-    const actB = b.kind === "activity" ? (b.data as Activity) : null;
-    const timeA = actA?.time || (a.kind === "meal" ? (a.data as Meal).time : undefined);
-    const timeB = actB?.time || (b.kind === "meal" ? (b.data as Meal).time : undefined);
-    const idxA = actA?.orderIndex;
-    const idxB = actB?.orderIndex;
+  ];
 
-    // Both activities with orderIndex → use orderIndex
-    if (actA && actB && idxA != null && idxB != null) return idxA - idxB;
+  const timedItems = allItems
+    .filter((item) => {
+      const t = getItemTime(item);
+      return t != null && t !== "";
+    })
+    .sort((a, b) => {
+      const timeA = getItemTime(a) || "";
+      const timeB = getItemTime(b) || "";
+      return timeA.localeCompare(timeB);
+    });
 
-    // Time-based sort for items with time
-    if (!timeA && !timeB) return 0;
-    if (!timeA) return 1;
-    if (!timeB) return -1;
-    return timeA.localeCompare(timeB);
+  const untimedItems = allItems.filter((item) => {
+    const t = getItemTime(item);
+    return t == null || t === "";
   });
 
   const sorted = sortedActivities; // keep for drag logic
 
-  // Conflict detection: same time OR duration overlap
+  // Conflict detection
   const conflictIds = new Set<string>();
   for (let i = 0; i < sorted.length; i++) {
     const a = sorted[i];
@@ -111,13 +112,10 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
     const aStart = getMinutes(a.time);
     const aDur = getDurationMinutes(a);
     const aEnd = aStart + aDur;
-
     for (let j = i + 1; j < sorted.length; j++) {
       const b = sorted[j];
       if (!b.time) continue;
       const bStart = getMinutes(b.time);
-
-      // Same time or duration overlap
       if (aStart === bStart || (aDur > 0 && aEnd > bStart)) {
         conflictIds.add(a.id);
         conflictIds.add(b.id);
@@ -125,6 +123,7 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
     }
   }
   const hasConflict = (a: Activity) => conflictIds.has(a.id);
+
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const dragRef = useRef<number | null>(null);
@@ -147,19 +146,13 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
       setOverIndex(null);
       return;
     }
-
     const item = sorted[fromIdx];
     if (item.timeLocked) return;
-
-    // Reorder: move item from fromIdx to dropIdx without changing time
     const reordered = [...sorted];
     const [moved] = reordered.splice(fromIdx, 1);
     reordered.splice(dropIdx, 0, moved);
-
-    // Assign orderIndex to all activities to preserve new order
     const updated = reordered.map((a, i) => ({ ...a, orderIndex: i }));
     onReorder(updated);
-
     setDragIndex(null);
     setOverIndex(null);
     dragRef.current = null;
@@ -171,33 +164,10 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
     dragRef.current = null;
   }, []);
 
-  // Touch drag support
-  const touchItem = useRef<{ idx: number; el: HTMLElement | null }>({ idx: -1, el: null });
-
-  const items: React.ReactNode[] = [];
-
-  timelineItems.forEach((item, idx) => {
-    // Gap indicator
-    if (idx > 0) {
-      const gap = getGapMinutes(timelineItems[idx - 1], item);
-      if (gap !== null) {
-        items.push(
-          <div key={`gap-${idx}`} className="flex items-center pl-[11px] py-1">
-            <div className="w-[2px] h-full bg-border" />
-            <span className="text-[11px] text-muted-foreground/50 font-medium ml-3">
-              {formatGap(gap)}
-            </span>
-          </div>
-        );
-      }
-    }
-
-    const isLast = idx === timelineItems.length - 1;
-    const isFirst = idx === 0;
-
+  const renderItem = (item: TimelineItem, isFirst: boolean, isLast: boolean) => {
     if (item.kind === "meal") {
       const meal = item.data as Meal;
-      items.push(
+      return (
         <div key={meal.id} className="flex items-stretch">
           <div className="flex flex-col items-center w-6 shrink-0 mr-3">
             <div className={`w-[2px] flex-1 ${isFirst ? "bg-transparent" : "bg-border"}`} />
@@ -206,9 +176,11 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
           </div>
           <div className="flex-1 min-w-0 py-1">
             <div className="flex items-center gap-1.5 mb-1">
-              <span className="text-xs font-semibold tabular-nums text-muted-foreground">
-                {meal.time}
-              </span>
+              {meal.time && (
+                <span className="text-xs font-semibold tabular-nums text-muted-foreground">
+                  {meal.time}
+                </span>
+              )}
               <UtensilsCrossed size={10} className="text-warning" />
               <span className="text-[11px] text-muted-foreground/60">{meal.mealName}</span>
             </div>
@@ -216,10 +188,12 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
           </div>
         </div>
       );
-    } else if (item.kind === "expense") {
+    }
+
+    if (item.kind === "expense") {
       const expense = item.data as Expense;
       const ExpIcon = expense.type === "supermarket" ? ShoppingCart : Receipt;
-      items.push(
+      return (
         <div key={expense.id} className="flex items-stretch">
           <div className="flex flex-col items-center w-6 shrink-0 mr-3">
             <div className={`w-[2px] flex-1 ${isFirst ? "bg-transparent" : "bg-border"}`} />
@@ -235,83 +209,141 @@ export function ActivityTimeline({ activities, meals = [], expenses = [], partic
           </div>
         </div>
       );
-    } else {
-      const activity = item.data as Activity;
-      const isLocked = activity.timeLocked;
-      const actIdx = sorted.indexOf(activity);
-      const isDragging = dragIndex === actIdx;
-      const isOver = overIndex === actIdx;
-      const conflict = hasConflict(activity);
-      const isHighlighted = highlightedActivityId === activity.id;
-
-      items.push(
-        <div
-          key={activity.id}
-          id={`activity-${activity.id}`}
-          draggable={!isLocked}
-          onDragStart={() => handleDragStart(actIdx, activity)}
-          onDragOver={(e) => handleDragOver(e, actIdx)}
-          onDrop={() => handleDrop(actIdx)}
-          onDragEnd={handleDragEnd}
-          className={`flex items-stretch transition-all duration-200 rounded-lg ${
-            isDragging ? "opacity-40 scale-[0.97]" : ""
-          } ${isOver && dragIndex !== null && dragIndex !== actIdx ? "translate-y-1" : ""} ${
-            isHighlighted ? "ring-2 ring-primary/50 bg-primary/5 animate-pulse" : ""
-          }`}
-        >
-          <div className="flex flex-col items-center w-6 shrink-0 mr-3">
-            <div className={`w-[2px] flex-1 ${isFirst ? "bg-transparent" : conflict ? "bg-warning/30" : "bg-border"}`} />
-            <div
-              className={`w-3 h-3 rounded-full shrink-0 border-2 transition-colors duration-200 ${
-                conflict
-                  ? "bg-warning/20 border-warning"
-                  : isLocked
-                  ? "bg-primary border-primary"
-                  : activity.time
-                  ? "bg-card border-primary/40"
-                  : "bg-card border-muted-foreground/20"
-              }`}
-            />
-            <div className={`w-[2px] flex-1 ${isLast ? "bg-transparent" : "bg-border"}`} />
-          </div>
-          <div className="flex-1 min-w-0 py-1">
-            <div className="flex items-center gap-1.5 mb-1">
-              {!isLocked && !activity.time && (
-                <span className="text-[11px] text-muted-foreground/40 italic">sem hora</span>
-              )}
-              {activity.time && (
-                <span className={`text-xs font-semibold tabular-nums ${
-                  conflict ? "text-warning" : isLocked ? "text-primary" : "text-muted-foreground"
-                }`}>
-                  {activity.time}
-                </span>
-              )}
-              {activity.estimatedDuration && (
-                <span className="text-[11px] text-muted-foreground/40">
-                  · {formatDurationShort(activity.estimatedDuration)}
-                </span>
-              )}
-              {isLocked && <Lock size={10} className="text-primary" />}
-              {conflict && (
-                <span className="inline-flex items-center gap-1 text-[10px] text-warning font-medium">
-                  <AlertTriangle size={10} /> Conflito
-                </span>
-              )}
-              {!isLocked && (
-                <GripVertical size={12} className="text-muted-foreground/20 ml-auto cursor-grab active:cursor-grabbing" />
-              )}
-            </div>
-            <ActivityCard
-              activity={activity}
-              participants={participants}
-              onUpdate={onUpdate}
-              onDelete={onDelete}
-            />
-          </div>
-        </div>
-      );
     }
+
+    // Activity
+    const activity = item.data as Activity;
+    const isLocked = activity.timeLocked;
+    const actIdx = sorted.indexOf(activity);
+    const isDragging = dragIndex === actIdx;
+    const isOver = overIndex === actIdx;
+    const conflict = hasConflict(activity);
+    const isHighlighted = highlightedActivityId === activity.id;
+
+    return (
+      <div
+        key={activity.id}
+        id={`activity-${activity.id}`}
+        draggable={!isLocked}
+        onDragStart={() => handleDragStart(actIdx, activity)}
+        onDragOver={(e) => handleDragOver(e, actIdx)}
+        onDrop={() => handleDrop(actIdx)}
+        onDragEnd={handleDragEnd}
+        className={`flex items-stretch transition-all duration-200 rounded-lg ${
+          isDragging ? "opacity-40 scale-[0.97]" : ""
+        } ${isOver && dragIndex !== null && dragIndex !== actIdx ? "translate-y-1" : ""} ${
+          isHighlighted ? "ring-2 ring-primary/50 bg-primary/5 animate-pulse" : ""
+        }`}
+      >
+        <div className="flex flex-col items-center w-6 shrink-0 mr-3">
+          <div className={`w-[2px] flex-1 ${isFirst ? "bg-transparent" : conflict ? "bg-warning/30" : "bg-border"}`} />
+          <div
+            className={`w-3 h-3 rounded-full shrink-0 border-2 transition-colors duration-200 ${
+              conflict
+                ? "bg-warning/20 border-warning"
+                : isLocked
+                ? "bg-primary border-primary"
+                : activity.time
+                ? "bg-card border-primary/40"
+                : "bg-card border-muted-foreground/20"
+            }`}
+          />
+          <div className={`w-[2px] flex-1 ${isLast ? "bg-transparent" : "bg-border"}`} />
+        </div>
+        <div className="flex-1 min-w-0 py-1">
+          <div className="flex items-center gap-1.5 mb-1">
+            {activity.time && (
+              <span className={`text-xs font-semibold tabular-nums ${
+                conflict ? "text-warning" : isLocked ? "text-primary" : "text-muted-foreground"
+              }`}>
+                {activity.time}
+              </span>
+            )}
+            {!activity.time && (
+              <span className="text-[11px] text-muted-foreground/40 italic">sem hora</span>
+            )}
+            {activity.estimatedDuration && (
+              <span className="text-[11px] text-muted-foreground/40">
+                · {formatDurationShort(activity.estimatedDuration)}
+              </span>
+            )}
+            {isLocked && <Lock size={10} className="text-primary" />}
+            {conflict && (
+              <span className="inline-flex items-center gap-1 text-[10px] text-warning font-medium">
+                <AlertTriangle size={10} /> Conflito
+              </span>
+            )}
+            {!isLocked && (
+              <GripVertical size={12} className="text-muted-foreground/20 ml-auto cursor-grab active:cursor-grabbing" />
+            )}
+          </div>
+          <ActivityCard
+            activity={activity}
+            participants={participants}
+            onUpdate={onUpdate}
+            onDelete={onDelete}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const timedNodes: React.ReactNode[] = [];
+  timedItems.forEach((item, idx) => {
+    if (idx > 0) {
+      const gap = getGapMinutes(timedItems[idx - 1], item);
+      if (gap !== null) {
+        timedNodes.push(
+          <div key={`gap-${idx}`} className="flex items-center pl-[11px] py-1">
+            <div className="w-[2px] h-full bg-border" />
+            <span className="text-[11px] text-muted-foreground/50 font-medium ml-3">
+              {formatGap(gap)}
+            </span>
+          </div>
+        );
+      }
+    }
+    const isFirst = idx === 0 && !topSlot;
+    const isLast = idx === timedItems.length - 1 && untimedItems.length === 0;
+    timedNodes.push(renderItem(item, isFirst, isLast));
   });
 
-  return <div className="flex flex-col">{items}</div>;
+  const untimedNodes: React.ReactNode[] = [];
+  untimedItems.forEach((item, idx) => {
+    const isFirst = idx === 0 && timedItems.length === 0 && !topSlot;
+    const isLast = idx === untimedItems.length - 1;
+    untimedNodes.push(renderItem(item, isFirst, isLast));
+  });
+
+  return (
+    <div className="flex flex-col">
+      {topSlot && (
+        <div className="flex items-stretch">
+          <div className="flex flex-col items-center w-6 shrink-0 mr-3">
+            <div className="w-[2px] flex-1 bg-transparent" />
+            <div className="w-2.5 h-2.5 rounded-full shrink-0 border-2 border-primary/30 bg-primary/10" />
+            <div className={`w-[2px] flex-1 ${timedItems.length > 0 || untimedItems.length > 0 ? "bg-border" : "bg-transparent"}`} />
+          </div>
+          <div className="flex-1 min-w-0 py-1">
+            {topSlot}
+          </div>
+        </div>
+      )}
+
+      {timedNodes}
+
+      {untimedItems.length > 0 && (
+        <>
+          <div className="flex items-center gap-2 pl-[11px] py-3 mt-2">
+            <div className="w-[2px] h-full bg-border/50" />
+            <Clock size={12} className="text-muted-foreground/40 ml-2" />
+            <span className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wide">
+              Sem horário definido
+            </span>
+          </div>
+          {untimedNodes}
+        </>
+      )}
+    </div>
+  );
 }
