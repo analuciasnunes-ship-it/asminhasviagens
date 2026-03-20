@@ -9,6 +9,7 @@ import { Activity, Participant, DURATION_OPTIONS, DurationLabel, ExpensePayment 
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
 import { ExpenseSplitFields } from "./ExpenseSplitFields";
 import { geocodeLocation } from "@/lib/geocode";
+import { useCurrentParticipantId } from "@/hooks/useCurrentParticipant";
 import { LocationAutocomplete } from "./LocationAutocomplete";
 
 interface Props {

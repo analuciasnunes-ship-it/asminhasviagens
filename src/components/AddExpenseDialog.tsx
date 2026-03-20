@@ -8,6 +8,7 @@ import { ShoppingCart, Receipt } from "lucide-react";
 import { Expense, Participant, ExpensePayment } from "@/types/trip";
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
 import { ExpenseSplitFields } from "./ExpenseSplitFields";
+import { useCurrentParticipantId } from "@/hooks/useCurrentParticipant";
 
 interface Props {
   participants: Participant[];

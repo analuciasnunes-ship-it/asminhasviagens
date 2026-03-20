@@ -8,6 +8,7 @@ import { UtensilsCrossed, ChevronDown, ChevronUp } from "lucide-react";
 import { Meal, Participant, ExpensePayment } from "@/types/trip";
 import { ExpensePaymentsList } from "./ExpensePaymentsList";
 import { ExpenseSplitFields } from "./ExpenseSplitFields";
+import { useCurrentParticipantId } from "@/hooks/useCurrentParticipant";
 
 const MEAL_TYPES = ["Pequeno-almoço", "Almoço", "Lanche", "Jantar", "Snack"];
 
